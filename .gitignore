@@ -1,0 +1,12 @@
+# vendor
+/vendor
+
+# mod
+*.mod
+
+# sum
+*.sum
+
+# pem
+*.pem
+
