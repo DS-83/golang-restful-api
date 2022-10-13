@@ -1,4 +1,4 @@
-## Welcome to the golang-restful-api wiki!
+## This is Example RESTful API server
 
 REST API with custom JWT-based authentication system. Core functionality is about creating and managing storage of photos.
 
@@ -31,8 +31,10 @@ Creates new user
 Request to get JWT Token based on user credentials
 
 ##### Example Input: 
+```
 Request Headers:
 Authorization: "Basic dXNlcjU6bXlzZWN1cmVwYXNzd29yZA=="
+```
 
 ##### Example Response: 
 ```
@@ -62,10 +64,13 @@ Delete current user
 Upload new photo
 
 ##### Example Input: 
+```
 Request Headers:
 Content-Type: multipart/form-data; "boundary=--------------------------867303760029570575153177"
 Request Body:
 photo: undefined
+```
+
 ### GET /api/photogramm/getphoto
 
 Returns info about photo by id
