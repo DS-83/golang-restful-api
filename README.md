@@ -1,5 +1,6 @@
 ## This is Example RESTful API server
 
+**Project build in accordance with the concept of "Clean Architecture" described in this article** https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
 REST API with custom JWT-based authentication system. Core functionality is about creating and managing storage of photos.
 
 Structure:

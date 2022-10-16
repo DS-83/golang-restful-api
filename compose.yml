@@ -5,9 +5,9 @@ services:
     build:
       dockerfile: mysql.Dockerfile
     container_name: "mysql-example"
-    restart: always
+    restart: always #restart container in case of startup errors
     volumes:
-      - ./schema.sql:/docker-entrypoint-initdb.d/0_init.sql
+      - ./schema.sql:/docker-entrypoint-initdb.d/0_init.sql # init scripts
 
   rest:
     build:
