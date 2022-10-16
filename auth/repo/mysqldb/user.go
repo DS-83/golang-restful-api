@@ -5,9 +5,9 @@ import (
 	"crypto/sha1"
 	"database/sql"
 	"encoding/hex"
+	"example-restful-api-server/e"
+	"example-restful-api-server/models"
 	"fmt"
-	"fotogramm/example-restful-api-server/e"
-	"fotogramm/example-restful-api-server/models"
 
 	"log"
 

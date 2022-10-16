@@ -1,7 +1,7 @@
 package http
 
 import (
-	"fotogramm/example-restful-api-server/photogramm"
+	"example-restful-api-server/photogramm"
 
 	"github.com/gin-gonic/gin"
 )

@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/models"
 )
 
 // Users storage interface

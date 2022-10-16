@@ -2,9 +2,8 @@ package local
 
 import (
 	"context"
-	"fmt"
-	"fotogramm/example-restful-api-server/e"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/e"
+	"example-restful-api-server/models"
 	"io"
 	"os"
 	"path/filepath"
@@ -58,7 +57,6 @@ func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
 
 	err := os.Remove(filePath)
 	if os.IsNotExist(err) {
-		fmt.Println(err)
 		return e.ErrNotFound
 	}
 	if err != nil {

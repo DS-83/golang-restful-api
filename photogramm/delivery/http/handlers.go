@@ -1,14 +1,15 @@
 package http
 
 import (
+	"example-restful-api-server/auth"
+	"example-restful-api-server/e"
+	"example-restful-api-server/models"
+	"example-restful-api-server/photogramm"
 	"fmt"
-	"fotogramm/example-restful-api-server/auth"
-	"fotogramm/example-restful-api-server/e"
-	"fotogramm/example-restful-api-server/models"
-	"fotogramm/example-restful-api-server/photogramm"
 	"log"
 	"mime/multipart"
 	"net/http"
+
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -128,7 +129,7 @@ func (h *Handler) RemovePhoto(c *gin.Context) {
 		log.Printf("removePhoto: %s", err)
 		return
 	}
-	resp := responce{Resp: "success"}
+	resp := responce{Resp: "delete success"}
 	c.JSON(http.StatusOK, resp)
 }
 

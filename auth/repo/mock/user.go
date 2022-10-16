@@ -2,7 +2,7 @@ package mock
 
 import (
 	"context"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/models"
 
 	"github.com/stretchr/testify/mock"
 )

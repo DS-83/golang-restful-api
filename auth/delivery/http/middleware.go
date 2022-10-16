@@ -1,9 +1,9 @@
 package http
 
 import (
+	"example-restful-api-server/auth"
+	"example-restful-api-server/e"
 	"fmt"
-	"fotogramm/example-restful-api-server/auth"
-	"fotogramm/example-restful-api-server/e"
 	"log"
 	"net/http"
 	"strings"

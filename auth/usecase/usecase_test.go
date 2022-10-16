@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	"fotogramm/example-restful-api-server/auth/repo/mysqldb"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/auth/repo/mysqldb"
+	"example-restful-api-server/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

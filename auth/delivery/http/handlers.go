@@ -2,10 +2,10 @@ package http
 
 import (
 	"encoding/base64"
+	"example-restful-api-server/auth"
+	"example-restful-api-server/e"
+	"example-restful-api-server/models"
 	"fmt"
-	"fotogramm/example-restful-api-server/auth"
-	"fotogramm/example-restful-api-server/e"
-	"fotogramm/example-restful-api-server/models"
 	"log"
 	"net/http"
 	"strings"

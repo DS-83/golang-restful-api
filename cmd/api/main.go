@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fotogramm/example-restful-api-server/config"
-	"fotogramm/example-restful-api-server/server"
+	"example-restful-api-server/config"
+	"example-restful-api-server/server"
 	"log"
 
 	"github.com/spf13/viper"

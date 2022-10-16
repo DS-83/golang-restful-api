@@ -3,9 +3,8 @@ package mysqldb
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"fotogramm/example-restful-api-server/e"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/e"
+	"example-restful-api-server/models"
 	"io"
 )
 
@@ -51,9 +50,18 @@ func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reade
 
 func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (*models.Photo, error) {
 	p := &models.Photo{}
-	q := "SELECT albums.album_name FROM photos JOIN albums ON photos.user_id=albums.user_id WHERE photos.id=?"
+	q := "SELECT album_id FROM photos WHERE id=?"
+	var a int
+	err := r.db.QueryRowContext(ctx, q, id).Scan(&a)
+	if err == sql.ErrNoRows {
+		return nil, e.ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
 
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&p.AlbumName)
+	q = "SELECT album_name FROM albums WHERE id=?"
+	err = r.db.QueryRowContext(ctx, q, a).Scan(&p.AlbumName)
 	if err == sql.ErrNoRows {
 		return nil, e.ErrNotFound
 	}
@@ -64,16 +72,15 @@ func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (*m
 	p.Id = id
 	p.UserId = u.Id
 	p.Username = u.Username
-
 	return p, nil
 
 }
+
 func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
 	q := "DELETE FROM photos WHERE id=? AND user_id=?"
 
 	_, err := r.db.ExecContext(ctx, q, p.Id, p.UserId)
 	if err == sql.ErrNoRows {
-		fmt.Println(err)
 		return e.ErrNotFound
 	}
 	if err != nil {

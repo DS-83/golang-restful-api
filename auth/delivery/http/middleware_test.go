@@ -1,9 +1,9 @@
 package http
 
 import (
-	"fotogramm/example-restful-api-server/auth/usecase"
-	"fotogramm/example-restful-api-server/e"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/auth/usecase"
+	"example-restful-api-server/e"
+	"example-restful-api-server/models"
 	"net/http"
 	"net/http/httptest"
 	"testing"

@@ -2,7 +2,7 @@ package photogramm
 
 import (
 	"context"
-	"fotogramm/example-restful-api-server/models"
+	"example-restful-api-server/models"
 	"io"
 )
 

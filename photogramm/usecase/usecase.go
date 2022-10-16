@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"context"
-	"fotogramm/example-restful-api-server/models"
-	"fotogramm/example-restful-api-server/photogramm"
+	"example-restful-api-server/models"
+	"example-restful-api-server/photogramm"
 	"io"
 )
 
