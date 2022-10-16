@@ -1,0 +1,20 @@
+
+services:
+
+  mysql:
+    build:
+      dockerfile: mysql.Dockerfile
+    container_name: "mysql-example"
+    restart: always
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/0_init.sql
+
+  rest:
+    build:
+      dockerfile: Dockerfile
+    container_name: "rest"
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
