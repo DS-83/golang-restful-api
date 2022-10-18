@@ -1,8 +1,8 @@
 port: 8080
 
 mysql:
-  # uri: "root:123456@tcp(mysql-example:3306)/photogramm"
-  uri: "root:123456@/photogramm"
+  uri: "root:123456@tcp(mysql-example:3306)/photogramm"
+  # uri: "root:123456@/photogramm"
 
 default_album_name: "default album"
 
