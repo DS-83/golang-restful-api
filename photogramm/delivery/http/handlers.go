@@ -33,7 +33,7 @@ type createInput struct {
 	Name string `json:"name"`
 }
 
-type responce struct {
+type response struct {
 	Resp string `json:"responce"`
 }
 
@@ -44,25 +44,25 @@ func NewHandler(uc photogramm.UseCase) *Handler {
 }
 
 func (h *Handler) Upload(c *gin.Context) {
-	errStr := "uploadHandler:"
-
 	user := c.MustGet(auth.CtxUserKey).(*models.User)
 
 	err := c.Request.ParseMultipartForm(10 << 20)
 	if err != nil {
-		e.ErrorHandler(c.Writer, http.StatusBadRequest, err, errStr)
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Println(err)
 		return
 	}
 
 	file, fileHeader, err := c.Request.FormFile("photo")
 	if err != nil {
-		e.ErrorHandler(c.Writer, http.StatusBadRequest, err, errStr)
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Println(err)
 		return
 	}
 	defer file.Close()
 
 	if err := isImage(fileHeader); err != nil {
-		e.ErrorHandler(c.Writer, http.StatusBadRequest, err, errStr)
+		c.JSON(http.StatusBadRequest, response{Resp: "not image"})
 		return
 	}
 	log.Printf("Uploaded File: %+v\n", fileHeader.Filename)
@@ -71,10 +71,14 @@ func (h *Handler) Upload(c *gin.Context) {
 
 	albName := c.Request.FormValue("album_name")
 
-	if err = h.useCase.UploadPhoto(c.Request.Context(), user, albName, file); err != nil {
-		e.ErrorHandler(c.Writer, http.StatusBadRequest, err, errStr)
+	id, err := h.useCase.UploadPhoto(c.Request.Context(), user, albName, file)
+	if err != nil {
+		c.AbortWithStatus(http.StatusBadRequest)
+		log.Println(err)
 		return
 	}
+	c.JSON(http.StatusOK, response{Resp: id})
+
 }
 
 func (h *Handler) GetPhoto(c *gin.Context) {
@@ -92,10 +96,10 @@ func (h *Handler) GetPhoto(c *gin.Context) {
 
 	if err == e.ErrNotFound {
 		log.Printf("getPhoto: %s", err)
-		resp := responce{
+		resp := response{
 			Resp: "not found",
 		}
-		c.JSON(http.StatusOK, resp)
+		c.JSON(http.StatusNotFound, resp)
 		return
 	}
 	if err != nil {
@@ -120,7 +124,7 @@ func (h *Handler) RemovePhoto(c *gin.Context) {
 	err := h.useCase.RemovePhoto(c, user, input.Id)
 	if err == e.ErrNotFound {
 		log.Printf("removePhoto: %s", err)
-		resp := responce{Resp: "not found"}
+		resp := response{Resp: "not found"}
 		c.JSON(http.StatusNotFound, resp)
 		return
 	}
@@ -129,7 +133,7 @@ func (h *Handler) RemovePhoto(c *gin.Context) {
 		log.Printf("removePhoto: %s", err)
 		return
 	}
-	resp := responce{Resp: "delete success"}
+	resp := response{Resp: "delete success"}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -139,7 +143,7 @@ func (h *Handler) CreateAlbum(c *gin.Context) {
 	input := createInput{}
 
 	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, response{Resp: "incorrect request body"})
 		log.Printf("createAlbum: %s", err)
 		return
 	}
@@ -147,7 +151,7 @@ func (h *Handler) CreateAlbum(c *gin.Context) {
 	err := h.useCase.CreateAlbum(c.Request.Context(), user, input.Name)
 	if err == e.ErrAlreadyExist {
 		log.Printf("createAlbum: %s", err)
-		resp := responce{Resp: "name already in use"}
+		resp := response{Resp: "name already in use"}
 		c.JSON(http.StatusConflict, resp)
 		return
 	}
@@ -157,7 +161,7 @@ func (h *Handler) CreateAlbum(c *gin.Context) {
 		log.Printf("createAlbum: %s", err)
 		return
 	}
-	resp := responce{Resp: "success"}
+	resp := response{Resp: "success"}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -167,7 +171,7 @@ func (h *Handler) GetAlbum(c *gin.Context) {
 	input := getInput{}
 
 	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, response{Resp: "incorrect request body"})
 		log.Printf("getAlbum: %s", err)
 		return
 	}
@@ -176,7 +180,7 @@ func (h *Handler) GetAlbum(c *gin.Context) {
 
 	if err == e.ErrNotFound {
 		log.Printf("getAlbum: %s", err)
-		resp := responce{Resp: "not found"}
+		resp := response{Resp: "not found"}
 		c.JSON(http.StatusNotFound, resp)
 		return
 	}
@@ -194,7 +198,7 @@ func (h *Handler) RemoveAlbum(c *gin.Context) {
 	input := removeInput{}
 
 	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, &response{Resp: "incorrect request body"})
 		log.Printf("removeAlbum: %s", err)
 		return
 	}
@@ -202,7 +206,7 @@ func (h *Handler) RemoveAlbum(c *gin.Context) {
 	err := h.useCase.RemoveAlbum(c, user, input.Name)
 	if err == e.ErrNotFound {
 		log.Printf("removeAlbum: %s", err)
-		resp := responce{Resp: "not found"}
+		resp := response{Resp: "not found"}
 		c.JSON(http.StatusNotFound, resp)
 		return
 	}
@@ -211,7 +215,7 @@ func (h *Handler) RemoveAlbum(c *gin.Context) {
 		log.Printf("removePhoto: %s", err)
 		return
 	}
-	resp := responce{Resp: "success"}
+	resp := response{Resp: "success"}
 	c.JSON(http.StatusOK, resp)
 }
 

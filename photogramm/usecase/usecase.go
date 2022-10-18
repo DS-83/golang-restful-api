@@ -10,10 +10,10 @@ import (
 type PhotogrammUsecase struct {
 	photoRepoDB    photogramm.PhotoRepo
 	photoRepoLocal photogramm.PhotoRepo
-	albumRepo      photogramm.PhotoAlbums
+	albumRepo      photogramm.AlbumsRepo
 }
 
-func NewPhotogrammUsecase(db photogramm.PhotoRepo, local photogramm.PhotoRepo, albumRepo photogramm.PhotoAlbums) *PhotogrammUsecase {
+func NewPhotogrammUsecase(db photogramm.PhotoRepo, local photogramm.PhotoRepo, albumRepo photogramm.AlbumsRepo) *PhotogrammUsecase {
 	return &PhotogrammUsecase{
 		photoRepoDB:    db,
 		photoRepoLocal: local,
@@ -21,13 +21,13 @@ func NewPhotogrammUsecase(db photogramm.PhotoRepo, local photogramm.PhotoRepo, a
 	}
 }
 
-func (uc *PhotogrammUsecase) UploadPhoto(ctx context.Context, u *models.User, albumName string, src io.Reader) error {
+func (uc *PhotogrammUsecase) UploadPhoto(c context.Context, u *models.User, albumName string, src io.Reader) (string, error) {
 	p := models.NewPhoto(u.Username, u.Id, albumName)
 
-	if err := uc.photoRepoLocal.CreatePhoto(ctx, p, src); err != nil {
-		return err
+	if _, err := uc.photoRepoLocal.CreatePhoto(c, p, src); err != nil {
+		return "", err
 	}
-	return uc.photoRepoDB.CreatePhoto(ctx, p, src)
+	return uc.photoRepoDB.CreatePhoto(c, p, src)
 }
 
 func (uc *PhotogrammUsecase) GetPhoto(ctx context.Context, u *models.User, id string) (*models.Photo, error) {

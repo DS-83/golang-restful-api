@@ -5,7 +5,6 @@ import (
 	"example-restful-api-server/auth"
 	"example-restful-api-server/e"
 	"example-restful-api-server/models"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -78,16 +77,16 @@ func (c *AuthUsecase) ParseTokenFromString(tokenString string) (*models.User, er
 	})
 
 	if err != nil {
-		return nil, e.Wrap("can't get token from string", err)
+		return nil, e.Wrap("ParseTokenFromString", err)
 	}
 
 	claims, ok := token.Claims.(*AuthClaims)
 	if !ok || !token.Valid {
-		return nil, fmt.Errorf("invalid access token")
+		return nil, e.ErrInvalidAccessToken
 	}
 	// Check for revoked token
 	if ok := c.userRepo.IsRevoked([]byte(tokenString)); ok {
-		return nil, fmt.Errorf("invalid access token")
+		return nil, e.ErrInvalidAccessToken
 	}
 
 	return claims.User, nil

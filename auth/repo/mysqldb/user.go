@@ -94,13 +94,13 @@ func (r UserRepo) RevokeToken(ctx context.Context, key []byte) error {
 	}
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	q := "SELECT jwt_token_id FROM revoked_tokens WHERE jwt_token_id = ?"
+	q := "SELECT jwt_token_id FROM revoked_tokens WHERE id = ?"
 	if err := r.db.QueryRow(q, hash).Scan(); err != sql.ErrNoRows {
 		log.Println(err)
 		return e.ErrRevokedToken
 	}
 
-	q = "INSERT INTO revoked_tokens (jwt_token_id) VALUES (?)"
+	q = "INSERT INTO revoked_tokens (id) VALUES (?)"
 	if _, err := r.db.ExecContext(ctx, q, hash); err != nil {
 		return err
 	}
@@ -116,7 +116,7 @@ func (r UserRepo) IsRevoked(key []byte) bool {
 	}
 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	q := "SELECT jwt_token_id FROM revoked_tokens WHERE jwt_token_id = ?"
+	q := "SELECT jwt_token_id FROM revoked_tokens WHERE id = ?"
 	if err := r.db.QueryRow(q, hash).Scan(); err != sql.ErrNoRows {
 		return true
 	}

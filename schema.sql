@@ -29,6 +29,6 @@ CREATE TABLE photos (
   );
 
   CREATE TABLE revoked_tokens (
-    jwt_token_id varchar(255) PRIMARY KEY,
+    id varchar(255) PRIMARY KEY,
     revoketion_date timestamp default now()
   );

@@ -91,7 +91,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	input := deleteInput{}
 
 	if err := c.BindJSON(&input); err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, response{Response: "incorrect request body"})
 		log.Printf("delete: %s", err)
 		return
 	}
@@ -99,7 +99,7 @@ func (h *Handler) Delete(c *gin.Context) {
 	err := h.useCase.DeleteUser(c, user)
 	if err == e.ErrRevokedToken {
 		log.Printf("delete: %s", err)
-		c.JSON(http.StatusOK, response{Response: "unauthorized"})
+		c.JSON(http.StatusUnauthorized, response{Response: "not valid token"})
 		return
 	}
 	if err != nil {
@@ -115,7 +115,6 @@ func parseSignInHeader(h http.Header) (cred []string, err error) {
 	defer func() { err = e.Wrap("can't read authorization param", err) }()
 
 	header := h["Authorization"]
-	fmt.Println(header)
 	if len(header) == 0 {
 		return nil, fmt.Errorf("missing params")
 	}

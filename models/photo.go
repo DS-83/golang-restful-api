@@ -10,8 +10,8 @@ import (
 
 type Photo struct {
 	Id        string `json:"photo_id"`
-	Username  string `json:"username"`
-	UserId    int    `json:"user_id"`
+	Username  string
+	UserId    int
 	AlbumName string `json:"album_name"`
 }
 

@@ -3,8 +3,6 @@ package e
 import (
 	"errors"
 	"fmt"
-	"log"
-	"net/http"
 )
 
 var (
@@ -23,11 +21,4 @@ func Wrap(msg string, err error) error {
 		return nil
 	}
 	return fmt.Errorf("%s: %w", msg, err)
-}
-
-func ErrorHandler(w http.ResponseWriter, code int, err error, msg string) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	fmt.Fprintf(w, `{"error":"%s"}`, err)
-	log.Printf("%s: %s", msg, err)
 }

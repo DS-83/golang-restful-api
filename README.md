@@ -71,7 +71,12 @@ Content-Type: multipart/form-data; "boundary=--------------------------867303760
 Request Body:
 photo: undefined
 ```
-
+##### Example Response:
+```
+{
+    "responce": "20072ab149d6c20d96f73bffd4bf1628fc427de1"
+}
+```
 ### GET /api/photogramm/getphoto
 
 Returns info about photo by id

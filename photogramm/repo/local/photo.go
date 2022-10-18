@@ -21,30 +21,30 @@ func NewPhotoRepo(basePath string) *PhotoRepo {
 	}
 }
 
-func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reader) error {
+func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reader) (string, error) {
 	filePath := filepath.Join(r.basePath, p.Username)
 
 	if err := os.MkdirAll(filePath, defaultPerm); err != nil {
-		return err
+		return "", err
 	}
 
 	fileName := p.Id
 	if fileName == "" {
-		return e.ErrIncorrectFileName
+		return "", e.ErrIncorrectFileName
 	}
 
 	filePath = filepath.Join(filePath, fileName)
 	file, err := os.Create(filePath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer file.Close()
 
 	// Copy the uploaded file to the created file on the filesystem
 	if _, err := io.Copy(file, s); err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return "", nil
 
 }
 

@@ -5,18 +5,20 @@ import (
 	"database/sql"
 	"example-restful-api-server/auth"
 	httpAuth "example-restful-api-server/auth/delivery/http"
-	"example-restful-api-server/auth/repo/mysqldb"
+	gormUser "example-restful-api-server/auth/repo/gorm"
 	"example-restful-api-server/auth/usecase"
 	"example-restful-api-server/photogramm"
 	httpPhoto "example-restful-api-server/photogramm/delivery/http"
+	gormPhoto "example-restful-api-server/photogramm/repo/gorm"
 	"example-restful-api-server/photogramm/repo/local"
-	photoMysqldb "example-restful-api-server/photogramm/repo/mysqldb"
 	photoUsecase "example-restful-api-server/photogramm/usecase"
 	"log"
 	"net/http"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -29,12 +31,13 @@ type App struct {
 }
 
 func NewApp() *App {
-	db := initDB()
+	sqlDB := initDB()
+	db := initGormDB(sqlDB)
 
-	userRepo := mysqldb.NewUserRepo(db, viper.GetString("mysql.default_album_name"))
-	photoDBRepo := photoMysqldb.NewPhotoRepo(db, viper.GetString("default_album_name"))
+	userRepo := gormUser.NewUserRepo(db, viper.GetString("default_album_name"))
+	photoDBRepo := gormPhoto.NewPhotoRepo(db, viper.GetString("default_album_name"))
 	photoLocalRepo := local.NewPhotoRepo(viper.GetString("local_storage"))
-	albumRepo := photoMysqldb.NewAlbumRepo(db)
+	albumRepo := gormPhoto.NewAlbumRepo(db)
 
 	return &App{
 		authUC: usecase.NewAuthUsecase(
@@ -100,4 +103,15 @@ func initDB() *sql.DB {
 		log.Fatal(err)
 	}
 	return db
+}
+
+func initGormDB(db *sql.DB) *gorm.DB {
+	gormDB, err := gorm.Open(mysql.New(mysql.Config{
+		Conn: db,
+	}), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return gormDB
 }
