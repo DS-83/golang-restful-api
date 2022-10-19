@@ -34,7 +34,7 @@ type createInput struct {
 }
 
 type response struct {
-	Resp string `json:"responce"`
+	Resp string `json:"response"`
 }
 
 func NewHandler(uc photogramm.UseCase) *Handler {
