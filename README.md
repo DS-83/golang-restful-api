@@ -28,7 +28,7 @@ Creates new user
 ##### Example Response: 
 ```
 {
-    "responce": "success"
+    "response": "success"
 }
 ```
 ### POST /auth/sign-in
@@ -78,7 +78,7 @@ photo: undefined
 ##### Example Response:
 ```
 {
-    "responce": "20072ab149d6c20d96f73bffd4bf1628fc427de1"
+    "response": "20072ab149d6c20d96f73bffd4bf1628fc427de1"
 }
 ```
 ### GET /api/photogramm/getphoto
