@@ -25,8 +25,12 @@ Creates new user
 	"password": "mysecretpassword"
 } 
 ```
-
-
+##### Example Response: 
+```
+{
+    "responce": "success"
+}
+```
 ### POST /auth/sign-in
 
 Request to get JWT Token based on user credentials
