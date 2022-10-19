@@ -60,6 +60,13 @@ func (r *AlbumRepo) RemoveAlbum(c context.Context, u *models.User, name string) 
 	a := &Album{AlbumName: name,
 		UserID: u.Id,
 	}
+	// Check existence
+	if err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", name, u.Id).First(a).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return e.ErrNotFound
+		}
+		return err
+	}
 	err := r.db.WithContext(c).Table("photos").Where("user_id = ?", a.UserID).Delete(a).Error
 	if err != nil {
 		return err

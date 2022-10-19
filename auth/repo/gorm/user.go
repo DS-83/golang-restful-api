@@ -68,7 +68,7 @@ func (r UserRepo) CreateUser(ctx context.Context, u *models.User) (err error) {
 	}
 	// Create default album for new user
 	album := album{
-		ID:        user.ID,
+		UserID:    user.ID,
 		AlbumName: r.defaultAlbum,
 	}
 	err = r.db.WithContext(ctx).Table("albums").Create(&album).Error
