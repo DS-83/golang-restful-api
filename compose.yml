@@ -8,6 +8,15 @@ services:
     restart: always #restart container in case of startup errors
     volumes:
       - ./schema.sql:/docker-entrypoint-initdb.d/0_init.sql # init scripts
+  
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    container_name: "mongo-example"
+    restart: always
+
+
 
   rest:
     build:
@@ -16,5 +25,6 @@ services:
     restart: always
     depends_on:
       - mysql
+      - mongo
     ports:
       - "8080:8080"
