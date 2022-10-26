@@ -2,7 +2,7 @@ package http
 
 import (
 	"example-restful-api-server/auth/usecase"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"net/http"
 	"net/http/httptest"
@@ -32,14 +32,14 @@ func TestAuthMiddleware_Handle(t *testing.T) {
 	}{
 		// TODO: Add test cases.
 		{
-			name: "no auth header",
+			name: "No auth header",
 			fields: fields{
 				uc: usecase.AuthUsecaseMock{},
 			},
 			code: 401,
 		},
 		{
-			name: "empty auth header",
+			name: "Empty auth header",
 			fields: fields{
 				uc: usecase.AuthUsecaseMock{},
 			},
@@ -65,7 +65,7 @@ func TestAuthMiddleware_Handle(t *testing.T) {
 			code: 401,
 		},
 		{
-			name: "valid request",
+			name: "Valid request",
 			fields: fields{
 				uc:          usecase.AuthUsecaseMock{},
 				returnArg:   &models.User{},

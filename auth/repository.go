@@ -11,6 +11,12 @@ type UserRepo interface {
 	GetUser(c context.Context, u string, p string) (*models.User, error)
 	// UpdateUser(context.Context, *model.DBUser) (*model.DBUser, error)
 	DeleteUser(context.Context, *models.User) error
-	RevokeToken(ctx context.Context, key []byte) error
-	IsRevoked(key []byte) bool
+	// RevokeToken(c context.Context, key []byte) error
+	// IsRevoked(key []byte) bool
+}
+
+// Tokens storage interface
+type TokenRepo interface {
+	RevokeToken(c context.Context, t *string) error
+	IsRevoked(c context.Context, t *string) (bool, error)
 }

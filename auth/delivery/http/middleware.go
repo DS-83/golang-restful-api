@@ -2,7 +2,7 @@ package http
 
 import (
 	"example-restful-api-server/auth"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +15,7 @@ import (
 const (
 	authBasic  string = "Basic"
 	authBearer string = "Bearer"
+	authHeader string = "Authorization"
 )
 
 type AuthMiddleware struct {
@@ -36,7 +37,7 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 		return
 	}
 
-	user, err := m.uc.ParseTokenFromString(tokenString)
+	user, err := m.uc.ParseTokenFromString(c, &tokenString)
 	if err != nil {
 		status := http.StatusInternalServerError
 		if err == e.ErrInvalidAccessToken {
@@ -47,18 +48,19 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 		c.AbortWithStatus(status)
 		return
 	}
+	c.Set(auth.CtxTokenString, tokenString)
 	c.Set(auth.CtxUserKey, user)
 }
 
 func parseHeaderAuth(h http.Header) (key string, err error) {
 	defer func() { err = e.Wrap("can't read authorization param", err) }()
-	header := h["Authorization"]
+	header := h[authHeader]
 	if len(header) == 0 {
 		return key, fmt.Errorf("missing params")
 	}
 
 	s := strings.Fields(header[0])
-	if len(s) < 2 || len(s) > 2 {
+	if len(s) != 2 {
 		return key, fmt.Errorf("incorrect")
 	}
 

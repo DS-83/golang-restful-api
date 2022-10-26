@@ -2,7 +2,7 @@ package http
 
 import (
 	"example-restful-api-server/auth"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"example-restful-api-server/photogramm"
 	"fmt"

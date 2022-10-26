@@ -16,11 +16,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type args struct {
+	username string
+	password string
+}
+
 func TestHandler_SignUp(t *testing.T) {
-	type args struct {
-		username string
-		password string
-	}
 	tests := []struct {
 		name    string
 		args    args
@@ -80,10 +81,7 @@ func TestHandler_SignUp(t *testing.T) {
 }
 
 func TestHandler_SignIn(t *testing.T) {
-	type args struct {
-		username string
-		password string
-	}
+
 	tests := []struct {
 		name    string
 		args    args
@@ -99,7 +97,7 @@ func TestHandler_SignIn(t *testing.T) {
 		},
 		hAuth:   "Basic",
 		code:    200,
-		jwt:     "{\"token\": \"jwt\"}",
+		jwt:     "{\"token\":\"jwt\"}",
 		wantErr: false,
 	},
 		{
@@ -113,6 +111,7 @@ func TestHandler_SignIn(t *testing.T) {
 			jwt:     "",
 			wantErr: false,
 		}}
+
 	uc := new(usecase.AuthUsecaseMock)
 
 	for _, tt := range tests {

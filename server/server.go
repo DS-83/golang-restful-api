@@ -6,6 +6,7 @@ import (
 	"example-restful-api-server/auth"
 	httpAuth "example-restful-api-server/auth/delivery/http"
 	gormUser "example-restful-api-server/auth/repo/gorm"
+	mongoToken "example-restful-api-server/auth/repo/mongodb"
 	"example-restful-api-server/auth/usecase"
 	"example-restful-api-server/photogramm"
 	httpPhoto "example-restful-api-server/photogramm/delivery/http"
@@ -17,6 +18,9 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -33,15 +37,18 @@ type App struct {
 func NewApp() *App {
 	sqlDB := initDB()
 	db := initGormDB(sqlDB)
+	mongoDB := initMongoDB()
 
 	userRepo := gormUser.NewUserRepo(db, viper.GetString("default_album_name"))
 	photoDBRepo := gormPhoto.NewPhotoRepo(db, viper.GetString("default_album_name"))
 	photoLocalRepo := local.NewPhotoRepo(viper.GetString("local_storage"))
 	albumRepo := gormPhoto.NewAlbumRepo(db)
+	tokenRepo := mongoToken.NewTokenRepo(mongoDB)
 
 	return &App{
 		authUC: usecase.NewAuthUsecase(
 			userRepo,
+			tokenRepo,
 			[]byte(viper.GetString("jwtKey")),
 		),
 		photoUC: photoUsecase.NewPhotogrammUsecase(
@@ -66,7 +73,7 @@ func (a *App) Run(port string) error {
 
 	// User delete endpoint
 	authMiddleware := httpAuth.NewAuthMiddleware(a.authUC)
-	delRoute := r.Group("/delete", authMiddleware)
+	delRoute := r.Group("/user", authMiddleware)
 	httpAuth.RegisterMidRoutes(delRoute, a.authUC)
 
 	api := r.Group("/api", authMiddleware)
@@ -114,4 +121,19 @@ func initGormDB(db *sql.DB) *gorm.DB {
 	}
 
 	return gormDB
+}
+
+func initMongoDB() *mongo.Database {
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(viper.GetString("mongo.uri")))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Ping the primary
+	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		log.Fatal(err)
+	}
+
+	return client.Database(viper.GetString("mongo.db"))
 }

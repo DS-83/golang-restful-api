@@ -3,9 +3,8 @@ package gorm
 import (
 	"context"
 	"errors"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -90,7 +89,6 @@ func (r *AlbumRepo) GetInfo(c context.Context, u *models.User) (*models.User, er
 		}
 		return nil, err
 	}
-	fmt.Println(names)
 
 	for _, name := range names {
 		album, err := r.GetAlbum(c, u, name)

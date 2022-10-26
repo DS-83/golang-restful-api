@@ -22,3 +22,9 @@ func (s *UserStorageMock) GetUser(ctx context.Context, username, password string
 
 	return args.Get(0).(*models.User), args.Error(1)
 }
+
+func (s *UserStorageMock) DeleteUser(c context.Context, u *models.User) error {
+	args := s.Called(u)
+
+	return args.Error(0)
+}

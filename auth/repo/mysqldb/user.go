@@ -2,14 +2,10 @@ package mysqldb
 
 import (
 	"context"
-	"crypto/sha1"
 	"database/sql"
-	"encoding/hex"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"fmt"
-
-	"log"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -85,40 +81,40 @@ func (r UserRepo) DeleteUser(ctx context.Context, u *models.User) error {
 	return nil
 }
 
-func (r UserRepo) RevokeToken(ctx context.Context, key []byte) error {
-	// Create hash of key string
-	hasher := sha1.New()
-	if _, err := hasher.Write(key); err != nil {
-		log.Println(err)
-		return err
-	}
-	hash := hex.EncodeToString(hasher.Sum(nil))
+// func (r UserRepo) RevokeToken(ctx context.Context, key []byte) error {
+// 	// Create hash of key string
+// 	hasher := sha1.New()
+// 	if _, err := hasher.Write(key); err != nil {
+// 		log.Println(err)
+// 		return err
+// 	}
+// 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	q := "SELECT jwt_token_id FROM revoked_tokens WHERE id = ?"
-	if err := r.db.QueryRow(q, hash).Scan(); err != sql.ErrNoRows {
-		log.Println(err)
-		return e.ErrRevokedToken
-	}
+// 	q := "SELECT jwt_token_id FROM revoked_tokens WHERE id = ?"
+// 	if err := r.db.QueryRow(q, hash).Scan(); err != sql.ErrNoRows {
+// 		log.Println(err)
+// 		return e.ErrRevokedToken
+// 	}
 
-	q = "INSERT INTO revoked_tokens (id) VALUES (?)"
-	if _, err := r.db.ExecContext(ctx, q, hash); err != nil {
-		return err
-	}
-	return nil
-}
+// 	q = "INSERT INTO revoked_tokens (id) VALUES (?)"
+// 	if _, err := r.db.ExecContext(ctx, q, hash); err != nil {
+// 		return err
+// 	}
+// 	return nil
+// }
 
-func (r UserRepo) IsRevoked(key []byte) bool {
-	// Create hash of key string
-	hasher := sha1.New()
-	if _, err := hasher.Write(key); err != nil {
-		log.Println(err)
-		return true
-	}
-	hash := hex.EncodeToString(hasher.Sum(nil))
+// func (r UserRepo) IsRevoked(key []byte) bool {
+// 	// Create hash of key string
+// 	hasher := sha1.New()
+// 	if _, err := hasher.Write(key); err != nil {
+// 		log.Println(err)
+// 		return true
+// 	}
+// 	hash := hex.EncodeToString(hasher.Sum(nil))
 
-	q := "SELECT jwt_token_id FROM revoked_tokens WHERE id = ?"
-	if err := r.db.QueryRow(q, hash).Scan(); err != sql.ErrNoRows {
-		return true
-	}
-	return false
-}
+// 	q := "SELECT jwt_token_id FROM revoked_tokens WHERE id = ?"
+// 	if err := r.db.QueryRow(q, hash).Scan(); err != sql.ErrNoRows {
+// 		return true
+// 	}
+// 	return false
+// }

@@ -2,12 +2,8 @@ package gorm
 
 import (
 	"context"
-	"crypto/sha1"
-	"encoding/hex"
-	"errors"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
-	"log"
 
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -57,10 +53,6 @@ type photo struct {
 	AlbumID int
 }
 
-type token struct {
-	ID string `gorm:"primaryKey"`
-}
-
 func (r UserRepo) CreateUser(ctx context.Context, u *models.User) (err error) {
 	user := toGormUser(u)
 	if err = r.db.WithContext(ctx).Create(&user).Error; err != nil {
@@ -104,39 +96,4 @@ func (r UserRepo) DeleteUser(ctx context.Context, u *models.User) error {
 	err = r.db.WithContext(ctx).Delete(&user{ID: u.Id}).Error
 
 	return err
-}
-
-func (r UserRepo) RevokeToken(ctx context.Context, key []byte) error {
-	// Create hash of key string
-	hasher := sha1.New()
-	if _, err := hasher.Write(key); err != nil {
-		log.Println(err)
-		return err
-	}
-	hash := hex.EncodeToString(hasher.Sum(nil))
-
-	err := r.db.WithContext(ctx).Table("revoked_tokens").First(&token{ID: hash}).Error
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Println(err)
-		return e.ErrRevokedToken
-	}
-
-	if err = r.db.WithContext(ctx).Table("revoked_tokens").Create(&token{ID: hash}).Error; err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r UserRepo) IsRevoked(key []byte) bool {
-	// Create hash of key string
-	hasher := sha1.New()
-	if _, err := hasher.Write(key); err != nil {
-		log.Println(err)
-		return true
-	}
-	hash := hex.EncodeToString(hasher.Sum(nil))
-	err := r.db.Table("revoked_tokens").First(&token{ID: hash}).Error
-
-	return !errors.Is(err, gorm.ErrRecordNotFound)
 }

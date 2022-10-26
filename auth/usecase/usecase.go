@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 	"example-restful-api-server/auth"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"time"
 
@@ -12,8 +12,9 @@ import (
 )
 
 type AuthUsecase struct {
-	userRepo auth.UserRepo
-	jwtKey   []byte
+	userRepo  auth.UserRepo
+	tokenRepo auth.TokenRepo
+	jwtKey    []byte
 }
 
 type AuthClaims struct {
@@ -21,10 +22,11 @@ type AuthClaims struct {
 	jwt.RegisteredClaims
 }
 
-func NewAuthUsecase(a auth.UserRepo, b []byte) *AuthUsecase {
+func NewAuthUsecase(a auth.UserRepo, t auth.TokenRepo, b []byte) *AuthUsecase {
 	return &AuthUsecase{
-		userRepo: a,
-		jwtKey:   b,
+		userRepo:  a,
+		tokenRepo: t,
+		jwtKey:    b,
 	}
 }
 
@@ -71,8 +73,8 @@ func (c *AuthUsecase) SignIn(ctx context.Context, username, pass string) (*strin
 	return &ts, nil
 }
 
-func (c *AuthUsecase) ParseTokenFromString(tokenString string) (*models.User, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (c *AuthUsecase) ParseTokenFromString(ctx context.Context, tokenString *string) (*models.User, error) {
+	token, err := jwt.ParseWithClaims(*tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return c.jwtKey, nil
 	})
 
@@ -85,18 +87,19 @@ func (c *AuthUsecase) ParseTokenFromString(tokenString string) (*models.User, er
 		return nil, e.ErrInvalidAccessToken
 	}
 	// Check for revoked token
-	if ok := c.userRepo.IsRevoked([]byte(tokenString)); ok {
-		return nil, e.ErrInvalidAccessToken
+	if ok, err := c.tokenRepo.IsRevoked(ctx, tokenString); ok {
+
+		return nil, err
 	}
 
 	return claims.User, nil
 }
 
-func (c *AuthUsecase) DeleteUser(ctx context.Context, u *models.User) error {
+func (c *AuthUsecase) DeleteUser(ctx context.Context, u *models.User, token *string) error {
 	if err := c.userRepo.DeleteUser(ctx, u); err != nil {
 		return err
 	}
-	if err := c.userRepo.RevokeToken(ctx, c.jwtKey); err != nil {
+	if err := c.tokenRepo.RevokeToken(ctx, token); err != nil {
 		return err
 	}
 	return nil

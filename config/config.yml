@@ -9,3 +9,7 @@ default_album_name: "default album"
 jwtKey: "8dasdiadi9329i3kd9d"
 
 local_storage: "./storage"
+
+mongo:
+  uri: "mongodb://localhost:27017/?maxPoolSize=20&w=majority"
+  db: "photogramm"

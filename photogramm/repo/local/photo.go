@@ -2,7 +2,7 @@ package local
 
 import (
 	"context"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"io"
 	"os"

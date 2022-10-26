@@ -2,17 +2,20 @@ package usecase
 
 import (
 	"context"
-	"example-restful-api-server/auth/repo/mysqldb"
+	"example-restful-api-server/auth/repo/mock"
 	"example-restful-api-server/models"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+type fields struct {
+	userRepo  *mock.UserStorageMock
+	tokenRepo *mock.TokenStorageMock
+}
+
 func TestAuthFlow(t *testing.T) {
-	type fields struct {
-		repo *mysqldb.UserRepoMock
-	}
+
 	type args struct {
 	}
 	tests := []struct {
@@ -24,7 +27,8 @@ func TestAuthFlow(t *testing.T) {
 		{
 			name: "Sign Up",
 			fields: fields{
-				repo: &mysqldb.UserRepoMock{},
+				userRepo:  &mock.UserStorageMock{},
+				tokenRepo: &mock.TokenStorageMock{},
 			},
 			args: args{},
 			code: 0,
@@ -44,8 +48,8 @@ func TestAuthFlow(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			uc := NewAuthUsecase(tt.fields.repo, []byte("secret"))
-			tt.fields.repo.On("CreateUser", user).Return(nil)
+			uc := NewAuthUsecase(tt.fields.userRepo, tt.fields.tokenRepo, []byte("secret"))
+			tt.fields.userRepo.On("CreateUser", user).Return(nil)
 			err := uc.SignUp(ctx, username, password)
 			assert.NoError(t, err)
 

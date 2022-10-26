@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/base64"
 	"example-restful-api-server/auth"
-	"example-restful-api-server/e"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"fmt"
 	"log"
@@ -28,6 +28,10 @@ type deleteInput struct {
 
 type response struct {
 	Response string `json:"responce"`
+}
+
+type signInResp struct {
+	Token string `json:"token"`
 }
 
 func NewHandler(uc auth.UseCase) *Handler {
@@ -64,7 +68,7 @@ func (h *Handler) SignIn(c *gin.Context) {
 	cred, err := parseSignInHeader(c.Request.Header)
 	if err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
-		log.Printf("sign-in: %s", err)
+		log.Printf("sign-in: %s", e.Wrap("can't read authorization param", err))
 		return
 	}
 
@@ -79,9 +83,8 @@ func (h *Handler) SignIn(c *gin.Context) {
 		log.Printf("sign-in: %s", err)
 		return
 	}
-	jD := []byte(fmt.Sprintf(`{"token": "%s"}`, *token))
 
-	c.Data(http.StatusOK, "application/json", jD)
+	c.JSON(http.StatusOK, signInResp{Token: *token})
 }
 
 func (h *Handler) Delete(c *gin.Context) {
@@ -95,8 +98,8 @@ func (h *Handler) Delete(c *gin.Context) {
 		log.Printf("delete: %s", err)
 		return
 	}
-
-	err := h.useCase.DeleteUser(c, user)
+	t := c.GetString(auth.CtxTokenString)
+	err := h.useCase.DeleteUser(c, user, &t)
 	if err == e.ErrRevokedToken {
 		log.Printf("delete: %s", err)
 		c.JSON(http.StatusUnauthorized, response{Response: "not valid token"})
@@ -112,14 +115,12 @@ func (h *Handler) Delete(c *gin.Context) {
 }
 
 func parseSignInHeader(h http.Header) (cred []string, err error) {
-	defer func() { err = e.Wrap("can't read authorization param", err) }()
-
-	header := h["Authorization"]
+	header := h[authHeader]
 	if len(header) == 0 {
 		return nil, fmt.Errorf("missing params")
 	}
 	s := strings.Fields(header[0])
-	if len(s) == 0 || len(s) > 2 {
+	if len(s) != 2 {
 		return nil, fmt.Errorf("missing fields")
 	}
 
