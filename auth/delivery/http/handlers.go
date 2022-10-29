@@ -40,6 +40,19 @@ func NewHandler(uc auth.UseCase) *Handler {
 	}
 }
 
+// Sign up
+// @Summary      Sign up user
+// @Description  Register user based on login and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        credentials body userInput true "Username/Password"
+// @Success      200  {object}  response
+// @Failure      400
+// @Failure      406  {object}  response
+// @Failure      404
+// @Failure      500
+// @Router       /auth/sign-up [post]
 func (h *Handler) SignUp(c *gin.Context) {
 	input := userInput{}
 
@@ -63,17 +76,28 @@ func (h *Handler) SignUp(c *gin.Context) {
 
 }
 
+// Sign in
+// @Summary      Sign in user
+// @Description  Sign in user based on login and password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Security	BasicAuth
+// @Success      200  {object}  signInResp
+// @Failure      400 {object} response
+// @Failure      401 {object} response
+// @Router       /auth/sign-in [post]
 func (h *Handler) SignIn(c *gin.Context) {
 
 	cred, err := parseSignInHeader(c.Request.Header)
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, response{Response: "incorrect request body"})
 		log.Printf("sign-in: %s", e.Wrap("can't read authorization param", err))
 		return
 	}
 
 	if len(cred[0]) == 0 || len(cred[1]) == 0 {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, response{Response: "incorrect input"})
 		log.Printf("sign-in: %s", fmt.Errorf("incorrect input"))
 		return
 	}
@@ -87,6 +111,19 @@ func (h *Handler) SignIn(c *gin.Context) {
 	c.JSON(http.StatusOK, signInResp{Token: *token})
 }
 
+// Delete
+// @Summary      Delete user
+// @Description  Delete authorized user account
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security	JWT
+// @Param 		delete body deleteInput true "delete input"
+// @Success      200  {object}  response
+// @Failure      400 {object} response
+// @Failure      401 {object} response
+// @Failure      500
+// @Router       /user/delete [delete]
 func (h *Handler) Delete(c *gin.Context) {
 
 	user := c.MustGet(auth.CtxUserKey).(*models.User)
@@ -106,7 +143,7 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		c.AbortWithStatus(http.StatusBadRequest)
+		c.AbortWithStatus(http.StatusInternalServerError)
 		log.Printf("delete: %s", err)
 		return
 	}

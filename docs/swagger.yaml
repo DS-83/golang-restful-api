@@ -1,0 +1,404 @@
+basePath: /
+definitions:
+  auth_delivery_http.response:
+    properties:
+      responce:
+        type: string
+    type: object
+  http.createInput:
+    properties:
+      name:
+        type: string
+    type: object
+  http.deleteInput:
+    properties:
+      delete:
+        type: string
+    type: object
+  http.removeInput:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  http.signInResp:
+    properties:
+      token:
+        type: string
+    type: object
+  http.uploadResp:
+    properties:
+      id:
+        type: string
+    type: object
+  http.userInput:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  models.Photo:
+    properties:
+      album_name:
+        type: string
+      photo_id:
+        type: string
+      userId:
+        type: integer
+      username:
+        type: string
+    type: object
+  models.PhotoAlbum:
+    properties:
+      album_name:
+        type: string
+      photos:
+        items:
+          type: string
+        type: array
+      total:
+        type: integer
+    type: object
+  models.User:
+    properties:
+      id:
+        type: integer
+      photo_albums:
+        items:
+          $ref: '#/definitions/models.PhotoAlbum'
+        type: array
+      username:
+        type: string
+    type: object
+  photogramm_delivery_http.response:
+    properties:
+      response:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: |-
+    REST API with custom JWT-based authentication system.
+    Core functionality is about creating and managing storage of photos.
+  title: Example REST API server document
+  version: 0.0.1
+paths:
+  /api/photogramm/createalbum:
+    post:
+      consumes:
+      - application/json
+      description: Create new album
+      parameters:
+      - description: album name
+        in: body
+        name: album_name
+        required: true
+        schema:
+          $ref: '#/definitions/http.createInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "401":
+          description: Unauthorized
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+      security:
+      - JWT: []
+      summary: Create album
+      tags:
+      - api
+  /api/photogramm/getalbum/{name}:
+    get:
+      description: Get album by name
+      parameters:
+      - description: album name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PhotoAlbum'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+      security:
+      - JWT: []
+      summary: Get album
+      tags:
+      - api
+  /api/photogramm/getinfo:
+    get:
+      description: Get user storage summary info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+      security:
+      - JWT: []
+      summary: Get user info
+      tags:
+      - api
+  /api/photogramm/getphoto/{id}:
+    get:
+      description: Get photo by id
+      parameters:
+      - description: photo id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Photo'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+      security:
+      - JWT: []
+      summary: Get photo
+      tags:
+      - api
+  /api/photogramm/removealbum:
+    delete:
+      consumes:
+      - application/json
+      description: Remove album by name
+      parameters:
+      - description: album name
+        in: body
+        name: name
+        required: true
+        schema:
+          $ref: '#/definitions/http.removeInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+      security:
+      - JWT: []
+      summary: Remove album
+      tags:
+      - api
+  /api/photogramm/removephoto:
+    delete:
+      consumes:
+      - application/json
+      description: Remove photo by id
+      parameters:
+      - description: photo id
+        in: body
+        name: id
+        required: true
+        schema:
+          $ref: '#/definitions/http.removeInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+      security:
+      - JWT: []
+      summary: Remove photo
+      tags:
+      - api
+  /api/photogramm/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload photo
+      parameters:
+      - description: uploaded file data
+        in: formData
+        name: photo
+        required: true
+        type: file
+      - description: album name
+        in: formData
+        name: album_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.uploadResp'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/photogramm_delivery_http.response'
+      security:
+      - JWT: []
+      summary: Upload photo
+      tags:
+      - api
+  /auth/sign-in:
+    post:
+      consumes:
+      - application/json
+      description: Sign in user based on login and password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/http.signInResp'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+      security:
+      - BasicAuth: []
+      summary: Sign in user
+      tags:
+      - auth
+  /auth/sign-up:
+    post:
+      consumes:
+      - application/json
+      description: Register user based on login and password
+      parameters:
+      - description: Username/Password
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/http.userInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "406":
+          description: Not Acceptable
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+        "500":
+          description: Internal Server Error
+      summary: Sign up user
+      tags:
+      - auth
+  /user/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Delete authorized user account
+      parameters:
+      - description: delete input
+        in: body
+        name: delete
+        required: true
+        schema:
+          $ref: '#/definitions/http.deleteInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/auth_delivery_http.response'
+        "500":
+          description: Internal Server Error
+      security:
+      - JWT: []
+      summary: Delete user
+      tags:
+      - user
+securityDefinitions:
+  BasicAuth:
+    type: basic
+  JWT:
+    description: Description for what is this security definition being used
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

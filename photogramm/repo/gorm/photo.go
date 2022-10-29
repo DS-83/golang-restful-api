@@ -64,15 +64,15 @@ func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (p 
 		return nil, err
 	}
 
-	p.Id = photo.ID
-
+	p = new(models.Photo)
+	p.Id = id
 	if err = r.db.WithContext(ctx).Model(&Album{}).Select(
-		"AlbumName", "id = ?", photo.AlbumID).Take(&p.AlbumName).Error; err != nil {
+		"album_name").Where("id=?", photo.AlbumID).Take(&p.AlbumName).Error; err != nil {
 		return nil, err
 	}
 
 	if err = r.db.WithContext(ctx).Model(&User{}).Select(
-		"Username", "id = ?", photo.UserID).Take(&p.Username).Error; err != nil {
+		"username").Where("id=?", photo.UserID).Take(&p.Username).Error; err != nil {
 		return nil, err
 	}
 	return p, nil

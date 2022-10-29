@@ -24,8 +24,12 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
+	_ "example-restful-api-server/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type App struct {
@@ -76,8 +80,12 @@ func (a *App) Run(port string) error {
 	delRoute := r.Group("/user", authMiddleware)
 	httpAuth.RegisterMidRoutes(delRoute, a.authUC)
 
+	// API endpoints
 	api := r.Group("/api", authMiddleware)
 	httpPhoto.RegisterRoutes(api, a.photoUC)
+
+	// Swagger
+	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
 	// HTTP Server
 	a.httpSrv = &http.Server{
@@ -89,7 +97,8 @@ func (a *App) Run(port string) error {
 	}
 
 	// go run $(go env GOROOT)/src/crypto/tls/generate_cert.go --host=localhost
-	if err := a.httpSrv.ListenAndServeTLS("cert.pem", "key.pem"); err != nil {
+	if err := a.httpSrv.ListenAndServe(); err != nil {
+		// if err := a.httpSrv.ListenAndServeTLS("cert.pem", "key.pem"); err != nil {
 		log.Fatalf("Failed to listen and serve: %+v", err)
 	}
 	ctx, shutdown := context.WithTimeout(context.Background(), 5*time.Second)

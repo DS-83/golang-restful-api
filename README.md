@@ -78,18 +78,18 @@ photo: undefined
 ##### Example Response:
 ```
 {
-    "response": "20072ab149d6c20d96f73bffd4bf1628fc427de1"
+    "id": "20072ab149d6c20d96f73bffd4bf1628fc427de1"
 }
 ```
-### GET /api/photogramm/getphoto
+### GET /api/photogramm/getphoto/{id}
 
 Returns info about photo by id
 
 #### Example Input:
 ```
-{
-    "id":"20c9f0501316ae4a8b130b0874a828d34f0e0252"
-}
+
+    GET /api/photogramm/getphoto/20c9f0501316ae4a8b130b0874a828d34f0e0252
+
 ```
 ##### Example Response:
 ```

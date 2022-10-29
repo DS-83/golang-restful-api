@@ -33,6 +33,7 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 
 	tokenString, err := parseHeaderAuth(c.Request.Header)
 	if err != nil {
+		log.Println(err)
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
@@ -61,7 +62,7 @@ func parseHeaderAuth(h http.Header) (key string, err error) {
 
 	s := strings.Fields(header[0])
 	if len(s) != 2 {
-		return key, fmt.Errorf("incorrect")
+		return key, fmt.Errorf("incorrect auth string")
 	}
 
 	if s[0] != authBearer {
