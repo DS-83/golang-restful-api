@@ -65,7 +65,7 @@ func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (p 
 	}
 
 	p = new(models.Photo)
-	p.Id = id
+	p.ID = id
 	if err = r.db.WithContext(ctx).Model(&Album{}).Select(
 		"album_name").Where("id=?", photo.AlbumID).Take(&p.AlbumName).Error; err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
 
 func toGormPhoto(p *models.Photo) *Photo {
 	return &Photo{
-		ID:     p.Id,
-		UserID: p.UserId,
+		ID:     p.ID,
+		UserID: p.UserID,
 	}
 }

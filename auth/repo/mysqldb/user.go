@@ -11,7 +11,7 @@ import (
 )
 
 type User struct {
-	Id       int
+	ID       int
 	Username string
 	Password string
 }
@@ -54,7 +54,7 @@ func (r UserRepo) GetUser(ctx context.Context, username string, pass string) (*m
 	u := &models.User{}
 	q := "SELECT id, username, password FROM users WHERE username = ?"
 
-	err := r.db.QueryRowContext(ctx, q, username).Scan(&u.Id, &u.Username, &u.Password)
+	err := r.db.QueryRowContext(ctx, q, username).Scan(&u.ID, &u.Username, &u.Password)
 	if err != nil {
 		return nil, e.Wrap("can't auth user", err)
 	}

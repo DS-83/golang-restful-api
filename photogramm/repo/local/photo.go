@@ -28,7 +28,7 @@ func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reade
 		return "", err
 	}
 
-	fileName := p.Id
+	fileName := p.ID
 	if fileName == "" {
 		return "", e.ErrIncorrectFileName
 	}
@@ -53,7 +53,7 @@ func (r *PhotoRepo) GetPhoto(c context.Context, u *models.User, id string) (*mod
 
 }
 func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
-	filePath := filepath.Join(r.basePath, p.Username, p.Id)
+	filePath := filepath.Join(r.basePath, p.Username, p.ID)
 
 	err := os.Remove(filePath)
 	if os.IsNotExist(err) {

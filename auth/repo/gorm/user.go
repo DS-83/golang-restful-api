@@ -30,7 +30,7 @@ func toGormUser(u *models.User) *user {
 }
 func toModelUser(u *user) *models.User {
 	return &models.User{
-		Id:          u.ID,
+		ID:          u.ID,
 		Username:    u.Username,
 		PhotoAlbums: []models.PhotoAlbum{},
 	}
@@ -84,16 +84,16 @@ func (r UserRepo) GetUser(ctx context.Context, username string, pass string) (*m
 }
 
 func (r UserRepo) DeleteUser(ctx context.Context, u *models.User) error {
-	err := r.db.WithContext(ctx).Where("user_id = ?", u.Id).Delete(&photo{}).Error
+	err := r.db.WithContext(ctx).Where("user_id = ?", u.ID).Delete(&photo{}).Error
 	if err != nil {
 		return err
 	}
-	err = r.db.WithContext(ctx).Where("user_id = ?", u.Id).Delete(&album{}).Error
+	err = r.db.WithContext(ctx).Where("user_id = ?", u.ID).Delete(&album{}).Error
 	if err != nil {
 		return err
 	}
 
-	err = r.db.WithContext(ctx).Delete(&user{ID: u.Id}).Error
+	err = r.db.WithContext(ctx).Delete(&user{ID: u.ID}).Error
 
 	return err
 }

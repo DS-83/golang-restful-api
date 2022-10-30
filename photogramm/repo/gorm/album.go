@@ -27,8 +27,9 @@ func NewAlbumRepo(db *gorm.DB) *AlbumRepo {
 }
 
 func (r *AlbumRepo) CreateAlbum(c context.Context, u *models.User, name string) error {
-	a := &Album{AlbumName: name,
-		UserID: u.Id,
+	a := &Album{
+		AlbumName: name,
+		UserID:    u.ID,
 	}
 	// Check album name does not exist
 	err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", a.AlbumName, a.UserID).First(a).Error
@@ -43,24 +44,27 @@ func (r *AlbumRepo) CreateAlbum(c context.Context, u *models.User, name string) 
 	return nil
 }
 func (r *AlbumRepo) GetAlbum(c context.Context, u *models.User, name string) (albm *models.PhotoAlbum, err error) {
-	a := &Album{}
-	if err = r.db.WithContext(c).Preload("Photos").Where("album_name = ? AND user_id = ?", name, u.Id).Find(a).Error; err != nil {
+	a := &Album{
+		AlbumName: name,
+		UserID:    u.ID,
+	}
+	if err = r.db.WithContext(c).Preload("Photos").Where(
+		"album_name = ? AND user_id = ?", a.AlbumName, u.ID).Take(a).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.ErrNotFound
 		}
 		return nil, err
 	}
-	albm = toModelsAlbum(a)
 
-	return albm, nil
+	return toModelsAlbum(a), nil
 }
 
 func (r *AlbumRepo) RemoveAlbum(c context.Context, u *models.User, name string) error {
 	a := &Album{AlbumName: name,
-		UserID: u.Id,
+		UserID: u.ID,
 	}
 	// Check existence
-	if err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", name, u.Id).First(a).Error; err != nil {
+	if err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", name, u.ID).First(a).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return e.ErrNotFound
 		}
@@ -82,7 +86,7 @@ func (r *AlbumRepo) GetInfo(c context.Context, u *models.User) (*models.User, er
 	albums := []models.PhotoAlbum{}
 	names := []string{}
 
-	err := r.db.WithContext(c).Select("album_name").Table("albums").Where("user_id = ?", u.Id).Find(&names).Error
+	err := r.db.WithContext(c).Select("album_name").Table("albums").Where("user_id = ?", u.ID).Find(&names).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.ErrNotFound
@@ -104,10 +108,10 @@ func (r *AlbumRepo) GetInfo(c context.Context, u *models.User) (*models.User, er
 
 func toModelsAlbum(a *Album) *models.PhotoAlbum {
 	albm := &models.PhotoAlbum{
-		Name:   a.AlbumName,
-		UserId: a.UserID,
-		Photos: []string{},
-		Total:  0,
+		Name:     a.AlbumName,
+		UserID:   a.UserID,
+		PhotosID: []string{},
+		Total:    0,
 	}
 
 	photos := []string{}
@@ -116,7 +120,7 @@ func toModelsAlbum(a *Album) *models.PhotoAlbum {
 		photos = append(photos, p.ID)
 	}
 
-	albm.Photos = photos
+	albm.PhotosID = photos
 	albm.Total = len(photos)
 
 	return albm

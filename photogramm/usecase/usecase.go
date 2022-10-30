@@ -22,7 +22,7 @@ func NewPhotogrammUsecase(db photogramm.PhotoRepo, local photogramm.PhotoRepo, a
 }
 
 func (uc *PhotogrammUsecase) UploadPhoto(c context.Context, u *models.User, albumName string, src io.Reader) (string, error) {
-	p := models.NewPhoto(u.Username, u.Id, albumName)
+	p := models.NewPhoto(u.Username, u.ID, albumName)
 
 	if _, err := uc.photoRepoLocal.CreatePhoto(c, p, src); err != nil {
 		return "", err
@@ -36,9 +36,9 @@ func (uc *PhotogrammUsecase) GetPhoto(ctx context.Context, u *models.User, id st
 
 func (uc *PhotogrammUsecase) RemovePhoto(ctx context.Context, u *models.User, id string) error {
 	p := &models.Photo{
-		Id:        id,
+		ID:        id,
 		Username:  u.Username,
-		UserId:    u.Id,
+		UserID:    u.ID,
 		AlbumName: "",
 	}
 
@@ -63,11 +63,11 @@ func (uc *PhotogrammUsecase) RemoveAlbum(c context.Context, u *models.User, name
 		return err
 	}
 	// Remove photos from local storage and DB
-	for _, id := range a.Photos {
+	for _, id := range a.PhotosID {
 		p := &models.Photo{
-			Id:        id,
+			ID:        id,
 			Username:  u.Username,
-			UserId:    u.Id,
+			UserID:    u.ID,
 			AlbumName: name,
 		}
 		if err := uc.photoRepoLocal.RemovePhoto(c, p); err != nil {

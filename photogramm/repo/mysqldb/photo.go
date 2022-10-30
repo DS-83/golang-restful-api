@@ -13,6 +13,12 @@ type PhotoRepo struct {
 	defaultAlbum string
 }
 
+type photo struct {
+	ID      string
+	AlbumID int
+	UserID  int
+}
+
 func NewPhotoRepo(db *sql.DB, defaultAlbum string) *PhotoRepo {
 	return &PhotoRepo{
 		db:           db,
@@ -32,17 +38,20 @@ func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reade
 		return "", err
 	}
 
-	if _, err := r.db.ExecContext(ctx, q, p.Id, albumId, p.UserId); err != nil {
+	if _, err := r.db.ExecContext(ctx, q, p.ID, albumId, p.UserID); err != nil {
 		return "", err
 	}
-	return p.Id, nil
+	return p.ID, nil
 }
 
 func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (*models.Photo, error) {
-	p := &models.Photo{}
+	p := &photo{
+		ID:     id,
+		UserID: u.ID,
+	}
+
 	q := "SELECT album_id FROM photos WHERE id=?"
-	var a int
-	err := r.db.QueryRowContext(ctx, q, id).Scan(&a)
+	err := r.db.QueryRowContext(ctx, q, p.ID).Scan(&p.AlbumID)
 	if err == sql.ErrNoRows {
 		return nil, e.ErrNotFound
 	}
@@ -51,7 +60,8 @@ func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (*m
 	}
 
 	q = "SELECT album_name FROM albums WHERE id=?"
-	err = r.db.QueryRowContext(ctx, q, a).Scan(&p.AlbumName)
+	name := ""
+	err = r.db.QueryRowContext(ctx, q, p.AlbumID).Scan(&name)
 	if err == sql.ErrNoRows {
 		return nil, e.ErrNotFound
 	}
@@ -59,17 +69,14 @@ func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (*m
 		return nil, err
 	}
 
-	p.Id = id
-	p.UserId = u.Id
-	p.Username = u.Username
-	return p, nil
+	return toModelsPhoto(p, u.Username, name), nil
 
 }
 
 func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
 	q := "DELETE FROM photos WHERE id=? AND user_id=?"
 
-	_, err := r.db.ExecContext(ctx, q, p.Id, p.UserId)
+	_, err := r.db.ExecContext(ctx, q, p.ID, p.UserID)
 	if err == sql.ErrNoRows {
 		return e.ErrNotFound
 	}
@@ -99,4 +106,13 @@ func rowsToSlice(rows *sql.Rows) (*[]string, error) {
 		s = append(s, id)
 	}
 	return &s, nil
+}
+
+func toModelsPhoto(p *photo, u string, a string) *models.Photo {
+	return &models.Photo{
+		ID:        p.ID,
+		Username:  u,
+		UserID:    p.UserID,
+		AlbumName: a,
+	}
 }
