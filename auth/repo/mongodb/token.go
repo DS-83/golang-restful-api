@@ -30,12 +30,12 @@ func NewTokenRepo(db *mongo.Database) *TokenRepo {
 	}
 }
 
-func (t TokenRepo) RevokeToken(c context.Context, tokenString *string) error {
+func (t TokenRepo) RevokeToken(c context.Context, tokenString string) error {
 	cur := t.db.Collection(rTokensT)
 
 	// Create hash of key string
 	hasher := sha1.New()
-	if _, err := hasher.Write([]byte(*tokenString)); err != nil {
+	if _, err := hasher.Write([]byte(tokenString)); err != nil {
 		log.Println(err)
 		return err
 	}
@@ -52,11 +52,11 @@ func (t TokenRepo) RevokeToken(c context.Context, tokenString *string) error {
 	return nil
 }
 
-func (t TokenRepo) IsRevoked(c context.Context, token *string) (bool, error) {
+func (t TokenRepo) IsRevoked(c context.Context, token string) (bool, error) {
 	cur := t.db.Collection(rTokensT)
 	// Create hash of key string
 	hasher := sha1.New()
-	if _, err := hasher.Write([]byte(*token)); err != nil {
+	if _, err := hasher.Write([]byte(token)); err != nil {
 		log.Println(err)
 		return true, err
 	}

@@ -22,13 +22,13 @@ func (m *AuthUsecaseMock) SignIn(c context.Context, u string, p string) (*string
 	return args.Get(0).(*string), args.Error(1)
 }
 
-func (m *AuthUsecaseMock) DeleteUser(c context.Context, u *models.User, t *string) error {
+func (m *AuthUsecaseMock) DeleteUser(c context.Context, u *models.User, t string) error {
 	args := m.Called(u, t)
 
 	return args.Error(0)
 }
 
-func (m *AuthUsecaseMock) ParseTokenFromString(c context.Context, tokenString *string) (*models.User, error) {
+func (m *AuthUsecaseMock) ParseTokenFromString(c context.Context, tokenString string) (*models.User, error) {
 	args := m.Called(tokenString)
 
 	return args.Get(0).(*models.User), args.Error(1)

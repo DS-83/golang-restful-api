@@ -18,6 +18,7 @@ func TestAuthMiddleware_Handle(t *testing.T) {
 		returnArg   interface{}
 		returnError error
 		methodName  string
+		token       string
 		methodArgs  interface{}
 	}
 	type args struct {
@@ -56,7 +57,7 @@ func TestAuthMiddleware_Handle(t *testing.T) {
 				returnArg:   &models.User{},
 				returnError: e.ErrInvalidAccessToken,
 				methodName:  "ParseTokenFromString",
-				methodArgs:  "",
+				token:       "",
 			},
 			args: args{
 				auth:     "Authorization",
@@ -71,7 +72,7 @@ func TestAuthMiddleware_Handle(t *testing.T) {
 				returnArg:   &models.User{},
 				returnError: nil,
 				methodName:  "ParseTokenFromString",
-				methodArgs:  "token",
+				token:       "token",
 			},
 			args: args{
 				auth:     "Authorization",
@@ -91,6 +92,7 @@ func TestAuthMiddleware_Handle(t *testing.T) {
 			})
 			w := httptest.NewRecorder()
 			if tt.fields.methodName != "" {
+				tt.fields.methodArgs = tt.fields.token
 				tt.fields.uc.On(tt.fields.methodName, tt.fields.methodArgs).Return(tt.fields.returnArg, tt.fields.returnError)
 			}
 			req, _ := http.NewRequest("POST", "/api/test", nil)

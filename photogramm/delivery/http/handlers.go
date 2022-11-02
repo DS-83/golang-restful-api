@@ -84,7 +84,9 @@ func (h *Handler) Upload(c *gin.Context) {
 
 	albName := c.Request.FormValue("album_name")
 
-	id, err := h.useCase.UploadPhoto(c.Request.Context(), user, albName, file)
+	photo := models.NewPhoto(user.Username, user.ID, albName)
+
+	id, err := h.useCase.UploadPhoto(c.Request.Context(), user, photo, file)
 	if err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		log.Println(err)

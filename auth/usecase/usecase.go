@@ -73,8 +73,8 @@ func (c *AuthUsecase) SignIn(ctx context.Context, username, pass string) (*strin
 	return &ts, nil
 }
 
-func (c *AuthUsecase) ParseTokenFromString(ctx context.Context, tokenString *string) (*models.User, error) {
-	token, err := jwt.ParseWithClaims(*tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (c *AuthUsecase) ParseTokenFromString(ctx context.Context, tokenString string) (*models.User, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return c.jwtKey, nil
 	})
 
@@ -95,7 +95,7 @@ func (c *AuthUsecase) ParseTokenFromString(ctx context.Context, tokenString *str
 	return claims.User, nil
 }
 
-func (c *AuthUsecase) DeleteUser(ctx context.Context, u *models.User, token *string) error {
+func (c *AuthUsecase) DeleteUser(ctx context.Context, u *models.User, token string) error {
 	if err := c.userRepo.DeleteUser(ctx, u); err != nil {
 		return err
 	}

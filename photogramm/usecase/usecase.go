@@ -21,8 +21,7 @@ func NewPhotogrammUsecase(db photogramm.PhotoRepo, local photogramm.PhotoRepo, a
 	}
 }
 
-func (uc *PhotogrammUsecase) UploadPhoto(c context.Context, u *models.User, albumName string, src io.Reader) (string, error) {
-	p := models.NewPhoto(u.Username, u.ID, albumName)
+func (uc *PhotogrammUsecase) UploadPhoto(c context.Context, u *models.User, p *models.Photo, src io.Reader) (string, error) {
 
 	if _, err := uc.photoRepoLocal.CreatePhoto(c, p, src); err != nil {
 		return "", err

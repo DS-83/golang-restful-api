@@ -27,7 +27,7 @@ type deleteInput struct {
 }
 
 type response struct {
-	Response string `json:"responce"`
+	Response string `json:"response"`
 }
 
 type signInResp struct {
@@ -136,7 +136,7 @@ func (h *Handler) Delete(c *gin.Context) {
 		return
 	}
 	t := c.GetString(auth.CtxTokenString)
-	err := h.useCase.DeleteUser(c, user, &t)
+	err := h.useCase.DeleteUser(c, user, t)
 	if err == e.ErrRevokedToken {
 		log.Printf("delete: %s", err)
 		c.JSON(http.StatusUnauthorized, response{Response: "not valid token"})

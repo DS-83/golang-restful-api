@@ -108,7 +108,7 @@ func TestHandler_SignIn(t *testing.T) {
 			},
 			hAuth:   "Basic",
 			code:    400,
-			jwt:     "",
+			jwt:     "{\"response\":\"incorrect input\"}",
 			wantErr: false,
 		}}
 
@@ -172,7 +172,7 @@ func TestHandler_Delete(t *testing.T) {
 	}
 
 	r := gin.Default()
-	group := r.Group("/delete", func(c *gin.Context) {
+	group := r.Group("/user", func(c *gin.Context) {
 		c.Set(auth.CtxUserKey, testUser)
 	})
 
@@ -189,12 +189,13 @@ func TestHandler_Delete(t *testing.T) {
 
 			body, err := json.Marshal(testInput)
 			assert.NoError(t, err)
+			token := ""
 
-			uc.On("DeleteUser", testUser).Return(nil)
+			uc.On("DeleteUser", testUser, token).Return(nil)
 
 			w := httptest.NewRecorder()
 
-			req, _ := http.NewRequest("DELETE", "/delete/user", bytes.NewBuffer(body))
+			req, _ := http.NewRequest("DELETE", "/user/delete", bytes.NewBuffer(body))
 
 			r.ServeHTTP(w, req)
 

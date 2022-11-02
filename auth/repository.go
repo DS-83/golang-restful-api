@@ -17,6 +17,6 @@ type UserRepo interface {
 
 // Tokens storage interface
 type TokenRepo interface {
-	RevokeToken(c context.Context, t *string) error
-	IsRevoked(c context.Context, t *string) (bool, error)
+	RevokeToken(c context.Context, t string) error
+	IsRevoked(c context.Context, t string) (bool, error)
 }
