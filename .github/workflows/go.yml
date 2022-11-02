@@ -13,6 +13,8 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    name: Go example server     
+
     steps:
     - uses: actions/checkout@v3
 
@@ -20,8 +22,14 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version-file: './go.mod'
-    - name: PWD
+   
+    - name: pwd
       run: pwd
+    - name: ls
+      run: ls
+    - name: ../ls
+      run: ../ls
+      
     - name: Install dependencies
       run: go install .
     - name: Test with Go
