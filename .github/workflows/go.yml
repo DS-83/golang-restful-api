@@ -24,7 +24,7 @@ jobs:
         go-version-file: './go.mod'
     
     - name: Install dependencies
-      run: go get ./cmd/api/main.go
+      run: go get ./cmd/api/...
     - name: Test with Go
       run: go test ./cmd/api/main.go -json > TestResults-${{ matrix.go-version }}.json
     - name: Upload Go test results
