@@ -22,18 +22,11 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version-file: './go.mod'
-   
-    - name: pwd
-      run: pwd
-    - name: ls
-      run: ls
-    - name: ../ls
-      run: ../ls
-      
+    
     - name: Install dependencies
-      run: go install .
+      run: go install ./cmd/api/main.go
     - name: Test with Go
-      run: go test -json > TestResults-${{ matrix.go-version }}.json
+      run: go test ./cmd/api/main.go -json > TestResults-${{ matrix.go-version }}.json
     - name: Upload Go test results
       uses: actions/upload-artifact@v3
       with:
@@ -41,4 +34,4 @@ jobs:
         path: TestResults-${{ matrix.go-version }}.json
 
     - name: Build
-      run: go build -v
+      run: go build -v ./cmd/api/main.go
