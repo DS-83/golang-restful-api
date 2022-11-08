@@ -16,13 +16,7 @@ type PhotoRepo struct {
 	defaultAlbum string
 }
 
-type User struct {
-	ID       int
-	Username string
-	Password string
-}
-
-type Photo struct {
+type photo struct {
 	ID      string `gorm:"primaryKey"`
 	UserID  int
 	AlbumID int
@@ -41,8 +35,8 @@ func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reade
 	}
 
 	photo := toGormPhoto(p)
-	err := r.db.WithContext(ctx).Select("albums.id").Joins("INNER JOIN users ON albums.user_id=users.id").Where("username= ? AND album_name = ?",
-		p.Username, p.AlbumName).Model(&Album{}).First(&photo.AlbumID).Error
+	err := r.db.WithContext(ctx).Select("albums.id").Where("user_id= ? AND album_name = ?",
+		p.UserID, p.AlbumName).Model(&album{}).First(&photo.AlbumID).Error
 	if err != nil {
 		log.Println(err)
 		return "", err
@@ -54,7 +48,7 @@ func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reade
 }
 
 func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (p *models.Photo, err error) {
-	photo := &Photo{ID: id}
+	photo := &photo{ID: id}
 
 	err = r.db.WithContext(ctx).Take(photo).Error
 	if err != nil {
@@ -66,12 +60,12 @@ func (r *PhotoRepo) GetPhoto(ctx context.Context, u *models.User, id string) (p 
 
 	p = new(models.Photo)
 	p.ID = id
-	if err = r.db.WithContext(ctx).Model(&Album{}).Select(
+	if err = r.db.WithContext(ctx).Model(&album{}).Select(
 		"album_name").Where("id=?", photo.AlbumID).Take(&p.AlbumName).Error; err != nil {
 		return nil, err
 	}
 
-	if err = r.db.WithContext(ctx).Model(&User{}).Select(
+	if err = r.db.WithContext(ctx).Model(&user{}).Select(
 		"username").Where("id=?", photo.UserID).Take(&p.Username).Error; err != nil {
 		return nil, err
 	}
@@ -92,8 +86,8 @@ func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
 	return nil
 }
 
-func toGormPhoto(p *models.Photo) *Photo {
-	return &Photo{
+func toGormPhoto(p *models.Photo) *photo {
+	return &photo{
 		ID:     p.ID,
 		UserID: p.UserID,
 	}

@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Auth types
@@ -40,13 +42,13 @@ func (m *AuthMiddleware) Handle(c *gin.Context) {
 
 	user, err := m.uc.ParseTokenFromString(c, tokenString)
 	if err != nil {
-		status := http.StatusInternalServerError
-		if err == e.ErrInvalidAccessToken {
-			status = http.StatusUnauthorized
+		s := http.StatusInternalServerError
+		if status.Code(err) == codes.Unauthenticated {
+			s = http.StatusUnauthorized
 		}
 
 		log.Println(err)
-		c.AbortWithStatus(status)
+		c.AbortWithStatus(s)
 		return
 	}
 	c.Set(auth.CtxTokenString, tokenString)

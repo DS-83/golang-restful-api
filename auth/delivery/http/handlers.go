@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type Handler struct {
@@ -24,6 +26,10 @@ type userInput struct {
 
 type deleteInput struct {
 	Delete string `json:"delete"`
+}
+
+type updateInput struct {
+	Update userInput `json:"update"`
 }
 
 type response struct {
@@ -50,6 +56,7 @@ func NewHandler(uc auth.UseCase) *Handler {
 // @Success      200  {object}  response
 // @Failure      400
 // @Failure      406  {object}  response
+// @Failure      409  {object}  response
 // @Failure      404
 // @Failure      500
 // @Router       /auth/sign-up [post]
@@ -67,6 +74,10 @@ func (h *Handler) SignUp(c *gin.Context) {
 	}
 
 	if err := h.useCase.SignUp(c.Request.Context(), input.Username, input.Password); err != nil {
+		if status.Code(err) == codes.AlreadyExists {
+			c.JSON(http.StatusConflict, response{Response: status.Convert(err).Message()})
+			return
+		}
 		c.AbortWithStatus(http.StatusInternalServerError)
 		log.Printf("sign-up: %s", err)
 		return
@@ -82,7 +93,7 @@ func (h *Handler) SignUp(c *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Security	BasicAuth
+// @Security	 BasicAuth
 // @Success      200  {object}  signInResp
 // @Failure      400 {object} response
 // @Failure      401 {object} response
@@ -98,12 +109,15 @@ func (h *Handler) SignIn(c *gin.Context) {
 
 	if len(cred[0]) == 0 || len(cred[1]) == 0 {
 		c.JSON(http.StatusBadRequest, response{Response: "incorrect input"})
-		log.Printf("sign-in: %s", fmt.Errorf("incorrect input"))
+		log.Printf("incorrect input")
 		return
 	}
 	token, err := h.useCase.SignIn(c.Request.Context(), cred[0], cred[1])
 	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
+		c.JSON(
+			http.StatusBadRequest,
+			response{Response: status.Convert(err).Message()},
+		)
 		log.Printf("sign-in: %s", err)
 		return
 	}
@@ -117,8 +131,8 @@ func (h *Handler) SignIn(c *gin.Context) {
 // @Tags         user
 // @Accept       json
 // @Produce      json
-// @Security	JWT
-// @Param 		delete body deleteInput true "delete input"
+// @Security	 JWT
+// @Param 		 delete body deleteInput true "delete input"
 // @Success      200  {object}  response
 // @Failure      400 {object} response
 // @Failure      401 {object} response
@@ -128,27 +142,76 @@ func (h *Handler) Delete(c *gin.Context) {
 
 	user := c.MustGet(auth.CtxUserKey).(*models.User)
 
-	input := deleteInput{}
+	input := new(deleteInput)
 
-	if err := c.BindJSON(&input); err != nil {
+	if err := c.BindJSON(input); err != nil {
 		c.JSON(http.StatusBadRequest, response{Response: "incorrect request body"})
 		log.Printf("delete: %s", err)
 		return
 	}
 	t := c.GetString(auth.CtxTokenString)
-	err := h.useCase.DeleteUser(c, user, t)
-	if err == e.ErrRevokedToken {
-		log.Printf("delete: %s", err)
-		c.JSON(http.StatusUnauthorized, response{Response: "not valid token"})
-		return
-	}
-	if err != nil {
+	if err := h.useCase.DeleteUser(c, user, t); err != nil {
+		if status.Code(err) == codes.NotFound {
+			c.JSON(
+				http.StatusBadRequest,
+				response{Response: status.Convert(err).Message()})
+			log.Printf("delete: %s", err)
+			return
+		}
 		c.AbortWithStatus(http.StatusInternalServerError)
 		log.Printf("delete: %s", err)
 		return
 	}
 
 	c.JSON(http.StatusOK, response{Response: "delete success"})
+}
+
+// Update user
+// @Summary      Update user
+// @Description  Update username or password
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Security	 JWT
+// @Param 		 update body updateInput true "update"
+// @Success      200  {object}  response
+// @Failure      400 {object} response
+// @Failure      401 {object} response
+// @Failure      500
+// @Router       /user/update [post]
+func (h *Handler) Update(c *gin.Context) {
+
+	user := c.MustGet(auth.CtxUserKey).(*models.User)
+
+	input := new(updateInput)
+
+	if err := c.BindJSON(input); err != nil {
+		c.JSON(http.StatusBadRequest, response{Response: "incorrect request body"})
+		log.Println(err)
+		return
+	}
+	upd := &models.User{
+		Username: input.Update.Username,
+		Password: input.Update.Password,
+	}
+
+	t := c.GetString(auth.CtxTokenString)
+
+	if err := h.useCase.UpdateUser(c, user, upd, t); err != nil {
+		if status.Code(err) == codes.NotFound {
+			c.JSON(
+				http.StatusBadRequest,
+				response{Response: status.Convert(err).Message()})
+			log.Printf("delete: %s", err)
+			return
+		}
+
+		c.AbortWithStatus(http.StatusInternalServerError)
+		log.Println(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response{Response: "update success"})
 }
 
 func parseSignInHeader(h http.Header) (cred []string, err error) {

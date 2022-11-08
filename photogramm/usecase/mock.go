@@ -13,8 +13,8 @@ type PhotogrammUsecaseMock struct {
 	mock.Mock
 }
 
-func (m *PhotogrammUsecaseMock) UploadPhoto(c context.Context, u *models.User, p *models.Photo, i io.Reader) (string, error) {
-	args := m.Called(u, p)
+func (m *PhotogrammUsecaseMock) UploadPhoto(c context.Context, p *models.Photo, i io.Reader) (string, error) {
+	args := m.Called(p)
 
 	return args.String(0), args.Error(1)
 }

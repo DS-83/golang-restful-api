@@ -3,24 +3,14 @@ package mysqldb
 import (
 	"context"
 	"database/sql"
-	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
 	"fmt"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
-type User struct {
+type user struct {
 	ID       int
+	MongoID  string
 	Username string
-	Password string
-}
-
-func toMySQLUser(u *models.User) *User {
-	return &User{
-		Username: u.Username,
-		Password: u.Password,
-	}
 }
 
 type UserRepo struct {
@@ -35,41 +25,44 @@ func NewUserRepo(db *sql.DB, defaultAlbum string) *UserRepo {
 	}
 }
 
-func (r UserRepo) CreateUser(ctx context.Context, u *models.User) (err error) {
-	sqlUser := toMySQLUser(u)
+func (r UserRepo) CreateUser(ctx context.Context, u *models.User) (*models.User, error) {
+	user := toMySQLUser(u)
 
-	q := "INSERT INTO users (username, password) VALUES (?, ?)"
+	q := "INSERT INTO users (username, mongo_id) VALUES (?, ?)"
 
-	if _, err = r.db.ExecContext(ctx, q, sqlUser.Username, sqlUser.Password); err != nil {
-		return err
+	if _, err := r.db.ExecContext(ctx, q, user.Username, user.MongoID); err != nil {
+		return nil, err
 	}
-	q = fmt.Sprintf("INSERT INTO albums (album_name, user_id) SELECT '%s', id FROM users WHERE username=?", r.defaultAlbum)
-	if _, err = r.db.ExecContext(ctx, q, u.Username); err != nil {
-		return err
+	q = fmt.Sprintf(
+		"INSERT INTO albums (album_name, user_id) SELECT '%s', id FROM users WHERE username=?",
+		r.defaultAlbum,
+	)
+	if _, err := r.db.ExecContext(ctx, q, u.Username); err != nil {
+		return nil, err
 	}
-	return nil
+	return r.GetUser(ctx, user.Username)
 }
 
-func (r UserRepo) GetUser(ctx context.Context, username string, pass string) (*models.User, error) {
-	u := &models.User{}
-	q := "SELECT id, username, password FROM users WHERE username = ?"
+func (r UserRepo) GetUser(ctx context.Context, username string) (*models.User, error) {
+	u := new(user)
 
-	err := r.db.QueryRowContext(ctx, q, username).Scan(&u.ID, &u.Username, &u.Password)
+	q := "SELECT id, mongo_id, username FROM users WHERE username = ?"
+
+	err := r.db.QueryRowContext(ctx, q, username).Scan(&u.ID, &u.MongoID, &u.Username)
 	if err != nil {
-		return nil, e.Wrap("can't auth user", err)
+		return nil, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(pass))
-	if err != nil {
-		return nil, e.Wrap("invalid credentials", err)
-	}
-	return u, err
+	return toModelsUser(u), nil
 }
 
 func (r UserRepo) DeleteUser(ctx context.Context, u *models.User) error {
 	tables := []string{"photos", "albums"}
 	for _, t := range tables {
-		q := fmt.Sprintf("DELETE FROM %s WHERE user_id = (SELECT id FROM users WHERE username = ?)", t)
+		q := fmt.Sprintf(
+			"DELETE FROM %s WHERE user_id = (SELECT id FROM users WHERE username = ?)",
+			t,
+		)
 		if _, err := r.db.ExecContext(ctx, q, u.Username); err != nil {
 			return err
 		}
@@ -79,4 +72,32 @@ func (r UserRepo) DeleteUser(ctx context.Context, u *models.User) error {
 		return err
 	}
 	return nil
+}
+
+func (r UserRepo) UpdateUser(c context.Context, f, u *models.User) error {
+	filt := toMySQLUser(f)
+	upd := toMySQLUser(u)
+
+	q := "UPDATE users SET username = ? WHERE id = ?"
+
+	if _, err := r.db.ExecContext(c, q, upd.Username, filt.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func toMySQLUser(u *models.User) *user {
+	return &user{
+		ID:       u.ID,
+		MongoID:  u.MongoID,
+		Username: u.Username,
+	}
+}
+
+func toModelsUser(u *user) *models.User {
+	return &models.User{
+		ID:       u.ID,
+		MongoID:  u.MongoID,
+		Username: u.Username,
+	}
 }

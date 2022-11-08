@@ -5,8 +5,8 @@ USE photogramm;
 
 CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTO_INCREMENT,
-  username varchar(255) UNIQUE NOT NULL,
-  password varchar(255) NOT NULL
+  mongo_id varchar(255) UNIQUE NOT NULL,
+  username varchar(255) UNIQUE NOT NULL
   );
 
 
@@ -26,9 +26,4 @@ CREATE TABLE photos (
       REFERENCES users(id),
     FOREIGN KEY (album_id)
       REFERENCES albums(id)
-  );
-
-  CREATE TABLE revoked_tokens (
-    id varchar(255) PRIMARY KEY,
-    revoketion_date timestamp default now()
   );

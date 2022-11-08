@@ -34,3 +34,9 @@ func (m *AuthUsecaseMock) ParseTokenFromString(c context.Context, tokenString st
 
 	return args.Get(0).(*models.User), args.Error(1)
 }
+
+func (m *AuthUsecaseMock) UpdateUser(c context.Context, f, u *models.User, t string) error {
+	args := m.Called(f, u, t)
+
+	return args.Error(0)
+}

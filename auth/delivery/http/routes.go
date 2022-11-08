@@ -19,9 +19,7 @@ func RegisterRoutes(r *gin.Engine, uc auth.UseCase) {
 func RegisterMidRoutes(r *gin.RouterGroup, uc auth.UseCase) {
 	h := NewHandler(uc)
 
-	userRoutes := r.Group("/delete")
-	{
-		userRoutes.DELETE("", h.Delete)
-	}
+	r.DELETE("delete", h.Delete)
+	r.POST("update", h.Update)
 
 }

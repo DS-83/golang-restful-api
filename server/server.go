@@ -5,26 +5,24 @@ import (
 	"database/sql"
 	"example-restful-api-server/auth"
 	httpAuth "example-restful-api-server/auth/delivery/http"
-	gormUser "example-restful-api-server/auth/repo/gorm"
-	mongoToken "example-restful-api-server/auth/repo/mongodb"
+	mysqlUser "example-restful-api-server/auth/repo/mysqldb"
 	"example-restful-api-server/auth/usecase"
 	"example-restful-api-server/photogramm"
 	httpPhoto "example-restful-api-server/photogramm/delivery/http"
-	gormPhoto "example-restful-api-server/photogramm/repo/gorm"
 	"example-restful-api-server/photogramm/repo/local"
+	mysqlPhoto "example-restful-api-server/photogramm/repo/mysqldb"
 	photoUsecase "example-restful-api-server/photogramm/usecase"
 	"log"
 	"net/http"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	_ "example-restful-api-server/docs"
+
+	pb "example-restful-api-server/authrpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -39,21 +37,20 @@ type App struct {
 }
 
 func NewApp() *App {
-	sqlDB := initDB()
-	db := initGormDB(sqlDB)
-	mongoDB := initMongoDB()
+	db := initDB()
+	// db := initGormDB(sqlDB)
+	rpcConn := initRpcClient()
 
-	userRepo := gormUser.NewUserRepo(db, viper.GetString("default_album_name"))
-	photoDBRepo := gormPhoto.NewPhotoRepo(db, viper.GetString("default_album_name"))
+	userRepo := mysqlUser.NewUserRepo(db, viper.GetString("default_album_name"))
+	photoDBRepo := mysqlPhoto.NewPhotoRepo(db, viper.GetString("default_album_name"))
 	photoLocalRepo := local.NewPhotoRepo(viper.GetString("local_storage"))
-	albumRepo := gormPhoto.NewAlbumRepo(db)
-	tokenRepo := mongoToken.NewTokenRepo(mongoDB)
+	albumRepo := mysqlPhoto.NewAlbumRepo(db)
+	rpcClient := pb.NewAuthServiceClient(rpcConn)
 
 	return &App{
 		authUC: usecase.NewAuthUsecase(
 			userRepo,
-			tokenRepo,
-			[]byte(viper.GetString("jwtKey")),
+			rpcClient,
 		),
 		photoUC: photoUsecase.NewPhotogrammUsecase(
 			photoDBRepo,
@@ -66,19 +63,15 @@ func NewApp() *App {
 func (a *App) Run(port string) error {
 	// Init gin handler
 	r := gin.Default()
-	r.Use(
-		gin.Recovery(),
-		gin.Logger(),
-	)
 
 	// Set up http handlers
 	// SignUp/SignIn endpoints
 	httpAuth.RegisterRoutes(r, a.authUC)
 
-	// User delete endpoint
+	// User endpoint
 	authMiddleware := httpAuth.NewAuthMiddleware(a.authUC)
-	delRoute := r.Group("/user", authMiddleware)
-	httpAuth.RegisterMidRoutes(delRoute, a.authUC)
+	user := r.Group("/user", authMiddleware)
+	httpAuth.RegisterMidRoutes(user, a.authUC)
 
 	// API endpoints
 	api := r.Group("/api", authMiddleware)
@@ -121,28 +114,26 @@ func initDB() *sql.DB {
 	return db
 }
 
-func initGormDB(db *sql.DB) *gorm.DB {
-	gormDB, err := gorm.Open(mysql.New(mysql.Config{
-		Conn: db,
-	}), &gorm.Config{})
+// func initGormDB(db *sql.DB) *gorm.DB {
+// 	gormDB, err := gorm.Open(mysql.New(mysql.Config{
+// 		Conn: db,
+// 	}), &gorm.Config{})
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	return gormDB
+// }
+
+func initRpcClient() *grpc.ClientConn {
+	var opts []grpc.DialOption
+
+	opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+
+	conn, err := grpc.Dial(viper.GetString("grpc_auth_srv"), opts...)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("fail to dial: %v", err)
 	}
 
-	return gormDB
-}
-
-func initMongoDB() *mongo.Database {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(viper.GetString("mongo.uri")))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Ping the primary
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		log.Fatal(err)
-	}
-
-	return client.Database(viper.GetString("mongo.db"))
+	return conn
 }
