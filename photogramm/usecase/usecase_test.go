@@ -19,7 +19,7 @@ var (
 )
 
 var user = &models.User{
-	ID:          0,
+	ID:          1,
 	Username:    "test",
 	Password:    "test",
 	PhotoAlbums: []models.PhotoAlbum{},
@@ -29,7 +29,7 @@ var photo = models.NewPhoto(user.Username, user.ID, "test")
 
 var album = &models.PhotoAlbum{
 	Name:     "test",
-	UserID:   0,
+	UserID:   1,
 	PhotosID: []string{},
 	Total:    0,
 }
@@ -41,7 +41,7 @@ func TestUsecase_UploadPhoto(t *testing.T) {
 	repoLocal.On("CreatePhoto", photo).Return("", nil)
 	repoDB.On("CreatePhoto", photo).Return(photo.ID, nil)
 
-	res, err := uc.UploadPhoto(context.Background(), user, photo, &bytes.Buffer{})
+	res, err := uc.UploadPhoto(context.Background(), photo, &bytes.Buffer{})
 	assert.NoError(t, err)
 	assert.Equal(t, photo.ID, res)
 

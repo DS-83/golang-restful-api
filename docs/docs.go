@@ -140,6 +140,9 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     }
                 }
             }
@@ -237,6 +240,9 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/photogramm_delivery_http.response"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "Not Found",
@@ -442,6 +448,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/auth_delivery_http.response"
                         }
                     },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/auth_delivery_http.response"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error"
                     }
@@ -501,13 +513,67 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/update": {
+            "post": {
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "description": "Update username or password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user",
+                "parameters": [
+                    {
+                        "description": "update",
+                        "name": "update",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/http.updateInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/auth_delivery_http.response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/auth_delivery_http.response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/auth_delivery_http.response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
         "auth_delivery_http.response": {
             "type": "object",
             "properties": {
-                "responce": {
+                "response": {
                     "type": "string"
                 }
             }
@@ -547,6 +613,14 @@ const docTemplate = `{
                 }
             }
         },
+        "http.updateInput": {
+            "type": "object",
+            "properties": {
+                "update": {
+                    "$ref": "#/definitions/http.userInput"
+                }
+            }
+        },
         "http.uploadResp": {
             "type": "object",
             "properties": {
@@ -575,7 +649,7 @@ const docTemplate = `{
                 "photo_id": {
                     "type": "string"
                 },
-                "userId": {
+                "user_id": {
                     "type": "integer"
                 },
                 "username": {

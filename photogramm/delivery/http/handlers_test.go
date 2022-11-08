@@ -133,7 +133,7 @@ func TestHandler_GetPhoto(t *testing.T) {
 			response: &models.Photo{
 				ID:        "123",
 				Username:  user.Username,
-				UserID:    0,
+				UserID:    1,
 				AlbumName: "test",
 			},
 		},
@@ -152,7 +152,7 @@ func TestHandler_GetPhoto(t *testing.T) {
 			tt.fields.useCase.On("GetPhoto", user, tt.args.id).Return(&models.Photo{
 				ID:        tt.args.id,
 				Username:  user.Username,
-				UserID:    0,
+				UserID:    1,
 				AlbumName: "test",
 			}, nil)
 
@@ -284,7 +284,7 @@ func TestHandler_GetAlbum(t *testing.T) {
 			name: "test_album",
 			response: &models.PhotoAlbum{
 				Name:     "test_album",
-				UserID:   0,
+				UserID:   1,
 				PhotosID: []string{},
 				Total:    0,
 			},
@@ -303,7 +303,7 @@ func TestHandler_GetAlbum(t *testing.T) {
 
 			tt.fields.useCase.On("GetAlbum", user, tt.args.name).Return(&models.PhotoAlbum{
 				Name:     tt.args.name,
-				UserID:   0,
+				UserID:   1,
 				PhotosID: []string{},
 				Total:    0,
 			}, nil)
@@ -388,7 +388,7 @@ func TestHandler_GetInfo(t *testing.T) {
 		args: args{
 			name: "test_album",
 			response: &models.User{
-				ID:          0,
+				ID:          1,
 				Username:    "test",
 				Password:    "test",
 				PhotoAlbums: []models.PhotoAlbum{},
@@ -407,7 +407,7 @@ func TestHandler_GetInfo(t *testing.T) {
 			RegisterRoutes(group, &tt.fields.useCase)
 
 			tt.fields.useCase.On("GetInfo", user).Return(&models.User{
-				ID:          0,
+				ID:          1,
 				Username:    user.Username,
 				Password:    user.Password,
 				PhotoAlbums: []models.PhotoAlbum{},

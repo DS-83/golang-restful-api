@@ -29,3 +29,9 @@ func (s *UserStorageMock) DeleteUser(c context.Context, u *models.User) error {
 
 	return args.Error(0)
 }
+
+func (s *UserStorageMock) UpdateUser(c context.Context, f, u *models.User) error {
+	args := s.Called(f, u)
+
+	return args.Error(0)
+}
