@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 const defaultPerm = 0774
@@ -23,7 +22,7 @@ func NewPhotoRepo(basePath string) *PhotoRepo {
 }
 
 func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reader) (string, error) {
-	filePath := filepath.Join(r.basePath, strconv.Itoa(p.UserID))
+	filePath := filepath.Join(r.basePath, p.Username)
 
 	if err := os.MkdirAll(filePath, defaultPerm); err != nil {
 		return "", err
@@ -41,7 +40,7 @@ func (r *PhotoRepo) CreatePhoto(ctx context.Context, p *models.Photo, s io.Reade
 	}
 	defer file.Close()
 
-	// Copy buffer in file
+	// Copy the uploaded file to the created file on the filesystem
 	if _, err := io.Copy(file, s); err != nil {
 		return "", err
 	}
@@ -54,7 +53,7 @@ func (r *PhotoRepo) GetPhoto(c context.Context, u *models.User, id string) (*mod
 
 }
 func (r *PhotoRepo) RemovePhoto(ctx context.Context, p *models.Photo) error {
-	filePath := filepath.Join(r.basePath, strconv.Itoa(p.UserID), p.ID)
+	filePath := filepath.Join(r.basePath, p.Username, p.ID)
 
 	err := os.Remove(filePath)
 	if os.IsNotExist(err) {

@@ -86,7 +86,7 @@ func (h *Handler) Upload(c *gin.Context) {
 
 	photo := models.NewPhoto(user.Username, user.ID, albName)
 
-	id, err := h.useCase.UploadPhoto(c.Request.Context(), photo, file)
+	id, err := h.useCase.UploadPhoto(c.Request.Context(), user, photo, file)
 	if err != nil {
 		c.AbortWithStatus(http.StatusBadRequest)
 		log.Println(err)
@@ -257,7 +257,6 @@ func (h *Handler) GetAlbum(c *gin.Context) {
 // @Param 		name body removeInput true "album name"
 // @Success      200  {object}  response
 // @Failure      400 {object} response
-// @Failure      401
 // @Failure      404 {object} response
 // @Router       /api/photogramm/removealbum [delete]
 func (h *Handler) RemoveAlbum(c *gin.Context) {
@@ -295,7 +294,6 @@ func (h *Handler) RemoveAlbum(c *gin.Context) {
 // @Security	JWT
 // @Success      200  {object}  models.User
 // @Failure      400
-// @Failure      401
 // @Router       /api/photogramm/getinfo [get]
 func (h *Handler) GetInfo(c *gin.Context) {
 	user := c.MustGet(auth.CtxUserKey).(*models.User)

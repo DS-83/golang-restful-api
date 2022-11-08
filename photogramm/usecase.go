@@ -7,7 +7,7 @@ import (
 )
 
 type UseCase interface {
-	UploadPhoto(context.Context, *models.Photo, io.Reader) (string, error)
+	UploadPhoto(context.Context, *models.User, *models.Photo, io.Reader) (string, error)
 	GetPhoto(c context.Context, u *models.User, id string) (*models.Photo, error)
 	RemovePhoto(c context.Context, u *models.User, id string) error
 	CreateAlbum(c context.Context, u *models.User, name string) error
