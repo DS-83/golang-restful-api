@@ -1,9 +1,6 @@
 # vendor
 /vendor
 
-# sum
-*.sum
-
 # pem
 *.pem
 
