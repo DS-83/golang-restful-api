@@ -3,6 +3,9 @@
 **Project build in accordance with the concept of "Clean Architecture" described in this article** https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html
 REST API with custom JWT-based authentication system. Core functionality is about creating and managing storage of photos.
 
+**Ver2:** Authorization is separated into an independent microservice:
+https://github.com/DS-83/go-grpc-auth
+
 Structure:
 
 4 Domain layers:
