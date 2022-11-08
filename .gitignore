@@ -1,8 +1,14 @@
 # vendor
 /vendor
 
+# sum
+*.sum
+
 # pem
 *.pem
 
 # storage
 /storage
+
+#docker config
+/docker

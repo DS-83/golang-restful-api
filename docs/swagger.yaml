@@ -2,7 +2,7 @@ basePath: /
 definitions:
   auth_delivery_http.response:
     properties:
-      response:
+      responce:
         type: string
     type: object
   http.createInput:
@@ -27,11 +27,6 @@ definitions:
       token:
         type: string
     type: object
-  http.updateInput:
-    properties:
-      update:
-        $ref: '#/definitions/http.userInput'
-    type: object
   http.uploadResp:
     properties:
       id:
@@ -50,7 +45,7 @@ definitions:
         type: string
       photo_id:
         type: string
-      user_id:
+      userId:
         type: integer
       username:
         type: string
@@ -166,8 +161,6 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
-        "401":
-          description: Unauthorized
       security:
       - JWT: []
       summary: Get user info
@@ -229,8 +222,6 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/photogramm_delivery_http.response'
-        "401":
-          description: Unauthorized
         "404":
           description: Not Found
           schema:
@@ -363,10 +354,6 @@ paths:
           description: Not Acceptable
           schema:
             $ref: '#/definitions/auth_delivery_http.response'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/auth_delivery_http.response'
         "500":
           description: Internal Server Error
       summary: Sign up user
@@ -404,40 +391,6 @@ paths:
       security:
       - JWT: []
       summary: Delete user
-      tags:
-      - user
-  /user/update:
-    post:
-      consumes:
-      - application/json
-      description: Update username or password
-      parameters:
-      - description: update
-        in: body
-        name: update
-        required: true
-        schema:
-          $ref: '#/definitions/http.updateInput'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/auth_delivery_http.response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/auth_delivery_http.response'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/auth_delivery_http.response'
-        "500":
-          description: Internal Server Error
-      security:
-      - JWT: []
-      summary: Update user
       tags:
       - user
 securityDefinitions:

@@ -13,5 +13,3 @@ local_storage: "./storage"
 mongo:
   uri: "mongodb://localhost:27017/?maxPoolSize=20&w=majority"
   db: "photogramm"
-
-grpc_auth_srv: "localhost:5005"

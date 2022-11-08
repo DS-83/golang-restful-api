@@ -4,8 +4,8 @@ import "example-restful-api-server/utils"
 
 type Photo struct {
 	ID        string `json:"photo_id"`
-	Username  string `json:"username"`
-	UserID    int    `json:"user_id,omitempty"`
+	Username  string
+	UserID    int
 	AlbumName string `json:"album_name"`
 }
 

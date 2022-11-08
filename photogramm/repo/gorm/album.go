@@ -13,17 +13,11 @@ type AlbumRepo struct {
 	db *gorm.DB
 }
 
-type album struct {
+type Album struct {
 	ID        int
 	AlbumName string
 	UserID    int
-	Photos    []photo
-}
-
-type user struct {
-	ID       int
-	MongoID  string
-	Username string
+	Photos    []Photo
 }
 
 func NewAlbumRepo(db *gorm.DB) *AlbumRepo {
@@ -33,14 +27,12 @@ func NewAlbumRepo(db *gorm.DB) *AlbumRepo {
 }
 
 func (r *AlbumRepo) CreateAlbum(c context.Context, u *models.User, name string) error {
-	user := toDbUser(u)
-
-	a := &album{
+	a := &Album{
 		AlbumName: name,
-		UserID:    user.ID,
+		UserID:    u.ID,
 	}
 	// Check album name does not exist
-	err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", a.AlbumName, user.ID).First(a).Error
+	err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", a.AlbumName, a.UserID).First(a).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return e.ErrAlreadyExist
 	}
@@ -52,17 +44,12 @@ func (r *AlbumRepo) CreateAlbum(c context.Context, u *models.User, name string) 
 	return nil
 }
 func (r *AlbumRepo) GetAlbum(c context.Context, u *models.User, name string) (albm *models.PhotoAlbum, err error) {
-	a := &album{
+	a := &Album{
 		AlbumName: name,
+		UserID:    u.ID,
 	}
-
-	user := toDbUser(u)
-	if err := r.db.WithContext(c).Where(user).First(user).Error; err != nil {
-		return nil, err
-	}
-
 	if err = r.db.WithContext(c).Preload("Photos").Where(
-		"album_name = ? AND user_id = ?", a.AlbumName, user.ID).Take(a).Error; err != nil {
+		"album_name = ? AND user_id = ?", a.AlbumName, u.ID).Take(a).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.ErrNotFound
 		}
@@ -73,28 +60,21 @@ func (r *AlbumRepo) GetAlbum(c context.Context, u *models.User, name string) (al
 }
 
 func (r *AlbumRepo) RemoveAlbum(c context.Context, u *models.User, name string) error {
-	a := &album{
-		AlbumName: name,
+	a := &Album{AlbumName: name,
+		UserID: u.ID,
 	}
-
-	user := toDbUser(u)
-
-	if err := r.db.WithContext(c).Where(user).First(user).Error; err != nil {
-		return err
-	}
-
 	// Check existence
-	if err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", name, user.ID).First(a).Error; err != nil {
+	if err := r.db.WithContext(c).Where("album_name = ? AND user_id = ?", name, u.ID).First(a).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return e.ErrNotFound
 		}
 		return err
 	}
-	err := r.db.WithContext(c).Where("user_id = ? AND album_id = ?", u.ID, a.ID).Delete(&photo{}).Error
+	err := r.db.WithContext(c).Table("photos").Where("user_id = ?", a.UserID).Delete(a).Error
 	if err != nil {
 		return err
 	}
-	err = r.db.WithContext(c).Where("user_id = ?", user.ID).Delete(a).Error
+	err = r.db.WithContext(c).Where("user_id = ?", a.UserID).Delete(a).Error
 	if err != nil {
 		return err
 	}
@@ -106,13 +86,7 @@ func (r *AlbumRepo) GetInfo(c context.Context, u *models.User) (*models.User, er
 	albums := []models.PhotoAlbum{}
 	names := []string{}
 
-	user := toDbUser(u)
-
-	if err := r.db.WithContext(c).Where(user).First(user).Error; err != nil {
-		return nil, err
-	}
-
-	err := r.db.WithContext(c).Select("album_name").Table("albums").Where("user_id = ?", user.ID).Find(&names).Error
+	err := r.db.WithContext(c).Select("album_name").Table("albums").Where("user_id = ?", u.ID).Find(&names).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, e.ErrNotFound
@@ -132,8 +106,7 @@ func (r *AlbumRepo) GetInfo(c context.Context, u *models.User) (*models.User, er
 	return u, nil
 }
 
-func toModelsAlbum(a *album) *models.PhotoAlbum {
-
+func toModelsAlbum(a *Album) *models.PhotoAlbum {
 	albm := &models.PhotoAlbum{
 		Name:     a.AlbumName,
 		UserID:   a.UserID,
@@ -151,12 +124,4 @@ func toModelsAlbum(a *album) *models.PhotoAlbum {
 	albm.Total = len(photos)
 
 	return albm
-}
-
-func toDbUser(u *models.User) *user {
-	return &user{
-		ID:       u.ID,
-		MongoID:  u.MongoID,
-		Username: u.Username,
-	}
 }

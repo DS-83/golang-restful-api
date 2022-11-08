@@ -3,15 +3,18 @@ package usecase
 import (
 	"context"
 	"example-restful-api-server/auth"
-	pb "example-restful-api-server/authrpc"
+	e "example-restful-api-server/err"
 	"example-restful-api-server/models"
+	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthUsecase struct {
 	userRepo  auth.UserRepo
-	rpcClient pb.AuthServiceClient
+	tokenRepo auth.TokenRepo
+	jwtKey    []byte
 }
 
 type AuthClaims struct {
@@ -19,122 +22,85 @@ type AuthClaims struct {
 	jwt.RegisteredClaims
 }
 
-func NewAuthUsecase(a auth.UserRepo, c pb.AuthServiceClient) *AuthUsecase {
+func NewAuthUsecase(a auth.UserRepo, t auth.TokenRepo, b []byte) *AuthUsecase {
 	return &AuthUsecase{
 		userRepo:  a,
-		rpcClient: c,
+		tokenRepo: t,
+		jwtKey:    b,
 	}
 }
 
 func (c *AuthUsecase) SignUp(ctx context.Context, username, pass string) (err error) {
-	cred := &pb.SignUpRequest{
+	// Salt and hash the password using the bcrypt algorithm
+	// The second argument is the cost of hashing, which we arbitrarily set as 8
+	//  (this value can be more or less, depending on the computing power you wish to utilize)
+	var hashedPassword []byte
+	hashedPassword, err = bcrypt.GenerateFromPassword([]byte(pass), 8)
+	if err != nil {
+		return err
+	}
+
+	user := &models.User{
 		Username: username,
-		Password: pass,
+		Password: string(hashedPassword),
 	}
-
-	resp, err := c.rpcClient.SignUp(ctx, cred)
-	if err != nil {
-		return err
-	}
-
-	user, err := c.userRepo.CreateUser(ctx, toModelsUser(resp))
-	if err != nil {
-		return err
-	}
-
-	// Send request with updated User
-	req := &pb.UpdRequest{
-		Filtr:  resp,
-		Upd:    toPbUser(user),
-		SignUp: true,
-	}
-
-	if _, err = c.rpcClient.Update(ctx, req); err != nil {
-		return err
-	}
-
-	return nil
+	return c.userRepo.CreateUser(ctx, user)
 }
 
 // Sign in user and get JWT string
 func (c *AuthUsecase) SignIn(ctx context.Context, username, pass string) (*string, error) {
-	req := &pb.SignInRequest{
-		Username: username,
-		Password: pass,
+	user, err := c.userRepo.GetUser(ctx, username, pass)
+	if err != nil {
+		return nil, err
 	}
-
-	resp, err := c.rpcClient.SignIn(ctx, req)
+	// Token expiration time:
+	exp := time.Now().Add(86400 * time.Second)
+	// Create the Claims
+	claims := AuthClaims{
+		User: user,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(exp),
+		},
+	}
+	// Create jwt Token. Signing method HS256 uses a []byte key
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	// Token string
+	ts, err := token.SignedString(c.jwtKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return &resp.Token, nil
+	return &ts, nil
 }
 
 func (c *AuthUsecase) ParseTokenFromString(ctx context.Context, tokenString string) (*models.User, error) {
-	req := &pb.ParseRequest{
-		Token: tokenString,
+	token, err := jwt.ParseWithClaims(tokenString, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return c.jwtKey, nil
+	})
+
+	if err != nil {
+		return nil, e.Wrap("ParseTokenFromString", err)
 	}
 
-	resp, err := c.rpcClient.ParseToken(ctx, req)
-	if err != nil {
+	claims, ok := token.Claims.(*AuthClaims)
+	if !ok || !token.Valid {
+		return nil, e.ErrInvalidAccessToken
+	}
+	// Check for revoked token
+	if ok, err := c.tokenRepo.IsRevoked(ctx, tokenString); ok {
+
 		return nil, err
 	}
 
-	return toModelsUser(resp), nil
-}
-
-func (c *AuthUsecase) UpdateUser(ctx context.Context, filt, upd *models.User, t string) error {
-	req := &pb.UpdRequest{
-		Filtr:  toPbUser(filt),
-		Upd:    toPbUser(upd),
-		Token:  t,
-		SignUp: false,
-	}
-
-	resp, err := c.rpcClient.Update(ctx, req)
-	if err != nil {
-		return err
-	}
-
-	if err := c.userRepo.UpdateUser(ctx, filt, toModelsUser(resp)); err != nil {
-		return err
-	}
-	return nil
+	return claims.User, nil
 }
 
 func (c *AuthUsecase) DeleteUser(ctx context.Context, u *models.User, token string) error {
-	req := &pb.DelRequest{
-		User:  toPbUser(u),
-		Token: token,
-	}
-
-	_, err := c.rpcClient.Delete(ctx, req)
-	if err != nil {
-		return err
-	}
-
 	if err := c.userRepo.DeleteUser(ctx, u); err != nil {
 		return err
 	}
-
+	if err := c.tokenRepo.RevokeToken(ctx, token); err != nil {
+		return err
+	}
 	return nil
-}
-
-func toModelsUser(u *pb.User) *models.User {
-	return &models.User{
-		ID:       int(u.MysqlId),
-		MongoID:  u.Id,
-		Username: u.Username,
-		Password: u.Password,
-	}
-}
-
-func toPbUser(u *models.User) *pb.User {
-	return &pb.User{
-		Id:       u.MongoID,
-		MysqlId:  int64(u.ID),
-		Username: u.Username,
-		Password: u.Password,
-	}
 }
