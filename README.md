@@ -50,7 +50,7 @@ Authorization: "Basic dXNlcjU6bXlzZWN1cmVwYXNzd29yZA=="
 	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1NzEwMzgyMjQuNzQ0MzI0MiwidXNlciI6eyJJRCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMCIsIlVzZXJuYW1lIjoiemhhc2hrZXZ5Y2giLCJQYXNzd29yZCI6IjQyODYwMTc5ZmFiMTQ2YzZiZDAyNjlkMDViZTM0ZWNmYmY5Zjk3YjUifX0.3dsyKJQ-HZJxdvBMui0Mzgw6yb6If9aB8imGhxMOjsk"
 } 
 ```
-### DELETE /delete/user
+### DELETE /user/delete
 
 Delete current user
 
@@ -64,6 +64,25 @@ Delete current user
 ```
 {
   "response": "delete success"
+}
+```
+### UPDATE /user/update
+
+Update current user
+
+#### Example Input:
+```
+{
+  "update": {
+    "password": "string",
+    "username": "string2"
+  }
+}
+```
+##### Example Response:
+```
+{
+  "response": "update success"
 }
 ```
 
